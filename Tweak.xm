@@ -2,6 +2,7 @@
 @import AudioToolbox;
 @import UIKit;
 
+<<<<<<< HEAD
 @interface DWLoadingView : UIView
 @property (nonatomic, assign, readwrite) UIImage *icon;
 -(instancetype)initWithIcon:(UIImage *)icon frame:(CGRect)frame;
@@ -107,6 +108,8 @@
 @end
 static DWLoadingView *loadingView = nil;
 
+=======
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 @interface UIImage (Change)
 + (UIImage*)changeImage:(UIImage *)image toColor:(UIColor *)color;
 @end
@@ -137,8 +140,11 @@ static DWLoadingView *loadingView = nil;
 }
 %end
 
+<<<<<<< HEAD
 static BOOL isLoading;
 
+=======
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 NSInteger colorProfile;
 
 struct pixel {
@@ -323,7 +329,10 @@ static BOOL darkMode = NO;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
 %property (nonatomic, copy) NSString *lastFullURL;
+<<<<<<< HEAD
 //%property (nonatomic, assign) DWLoadingView *loadingView;
+=======
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 
 -(BOOL)didFinishDocumentLoad {
 
@@ -398,7 +407,12 @@ static BOOL darkMode = NO;
 	#pragma mark End blocks
 
 	//loading in the stylesheet and decoding it
+<<<<<<< HEAD
 	//TODO: load these once into variables
+=======
+	//TODO: load these once into variables, we really don't want to load from files every time
+	//also TODO: use newer, non-deprecated methods
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 	NSError *err;
 	NSString *stylesheetFromHex = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
 	fromDoubleHex(&stylesheetFromHex, @"You can go away now.\n");
@@ -482,6 +496,10 @@ static BOOL darkMode = NO;
 
 		if(!(nWhite > newWhite) && (nWhite != newWhite)) { //i cba to put it in one so i'll just do two conditions
 			NSLog(@"Page is still not dark after reinjection.");
+<<<<<<< HEAD
+=======
+			//there needs to be more than this
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 			[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
 		}
 
@@ -628,6 +646,10 @@ static BOOL darkMode = NO;
 
 %end
 
+<<<<<<< HEAD
+=======
+//dark keyboard
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
 %hook UIKBRenderConfig
 - (void)setLightKeyboard:(BOOL)light {
 	%orig(NO);
@@ -639,6 +661,7 @@ static BOOL darkMode = NO;
 	return 10;
 }
 %end
+<<<<<<< HEAD
 
 %hook BookmarkFavouriteView
 
@@ -647,3 +670,5 @@ static BOOL darkMode = NO;
 	[[NSNotificationCenter defaultCenter] addObserver:%orig selector:@selector(setBackgroundColor:) name:@"DarkWebLight" object:[UIColor clearColor]];
 }
 %end
+=======
+>>>>>>> 8038abd8a8cafc2b48b444f756bd6633786e63df
