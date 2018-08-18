@@ -520,6 +520,7 @@ static BOOL darkMode = NO;
 
 %end
 
+//dark keyboard
 %hook UIKBRenderConfig
 - (void)setLightKeyboard:(BOOL)light {
 	%orig(NO);
@@ -529,13 +530,5 @@ static BOOL darkMode = NO;
 %hook UIDevice
 - (long long)_keyboardGraphicsQuality {
 	return 10;
-}
-%end
-
-%hook BookmarkFavouriteView
-
--(id)init {
-	[[NSNotificationCenter defaultCenter] addObserver:%orig selector:@selector(setBackgroundColor:) name:@"DarkWebDark" object:[UIColor blackColor]];
-	[[NSNotificationCenter defaultCenter] addObserver:%orig selector:@selector(setBackgroundColor:) name:@"DarkWebLight" object:[UIColor clearColor]];
 }
 %end
