@@ -35,7 +35,7 @@
 NSInteger colorProfile;
 
 struct pixel {
-    unsigned char r, g, b, a;
+	unsigned char r, g, b, a;
 };
 
 CGFloat alpha = 1.0;
@@ -193,7 +193,6 @@ static BOOL darkMode = NO;
 @property (nonatomic, assign) BOOL hasInjected;
 @property (nonatomic, assign) BOOL shouldInject;
 @property (nonatomic, assign) BOOL injectedForThisPage;
-//@property (nonatomic, assign) BOOL darkMode;
 @property (nonatomic, copy) NSString *originalHead;
 @property (nonatomic, copy) NSString *originalBody;
 @property (nonatomic, copy) NSString *lastHost;
@@ -212,7 +211,6 @@ static BOOL darkMode = NO;
 %property (nonatomic, assign) BOOL hasInjected;
 %property (nonatomic, assign) BOOL shouldInject;
 %property (nonatomic, assign) BOOL injectedForThisPage;
-//%property (nonatomic, assign) BOOL darkMode;
 %property (nonatomic, copy) NSString *originalHead;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
@@ -327,7 +325,7 @@ static BOOL darkMode = NO;
 		NSString *modifiedHead = @"";
 
 		modifiedHead = [head copy];
-		modifiedHead = [modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/dark_24.css\" type=\"text/css\">"];
+		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];//[modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/dark_24.css\" type=\"text/css\">"];
 		modifiedHead = ([[URL absoluteString] containsString:@"github.com"]) ? [modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/gh.css\" type=\"text/css\">"] : modifiedHead;
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
