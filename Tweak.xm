@@ -397,15 +397,10 @@ static BOOL darkMode = NO;
 
 %new
 -(void)runJavaScript:(NSString *)js {
-	__block NSString *resultString = nil;
 	__block BOOL finished = NO;
 
 	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if (error == nil) {
-			if (result != nil) {
-				resultString = [NSString stringWithFormat:@"%@", result];
-			}
-		} else {
+		if(error) {
 			NSLog(@"JSErr: %@", error.localizedDescription);
 		}
 		finished = YES;
@@ -480,8 +475,6 @@ static BOOL darkMode = NO;
 		});
 	}
 
-	//web requests slow execution down, so we need to execute in the background
-	//[((NSObject *)self) performSelectorInBackground:@selector(downloadAndEncryptStylesheet) withObject:nil];
 }
 
 %new
