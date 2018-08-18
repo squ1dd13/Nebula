@@ -290,7 +290,8 @@ static BOOL darkMode = NO;
 	#pragma mark End blocks
 
 	//loading in the stylesheet and decoding it
-	//TODO: load these once into variables
+	//TODO: load these once into variables, we really don't want to load from files every time
+	//also TODO: use newer, non-deprecated methods
 	NSError *err;
 	NSString *stylesheetFromHex = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
 	fromDoubleHex(&stylesheetFromHex, @"You can go away now.\n");
