@@ -1,0 +1,10 @@
+Package: com.squ1dd13.luna
+Name: Luna
+Depends: mobilesubstrate
+Architecture: iphoneos-arm
+Description: Safari webpage darkmode.
+Maintainer: Squ1dd13
+Author: Squ1dd13
+Section: Tweaks
+Version: 0.0.1-6+debug
+Installed-Size: 304
