@@ -2,111 +2,6 @@
 @import AudioToolbox;
 @import UIKit;
 
-@interface DWLoadingView : UIView
-@property (nonatomic, assign, readwrite) UIImage *icon;
--(instancetype)initWithIcon:(UIImage *)icon frame:(CGRect)frame;
-@end
-
-@implementation DWLoadingView
-
--(instancetype)initWithIcon:(UIImage *)icon frame:(CGRect)frame {
-    self = [super initWithFrame:frame];
-    if(self) {
-        self.icon = icon;
-	   [self setUp];
-    }
-    return self;
-}
-
--(instancetype)initWithFrame:(CGRect)frame {
-	self = [super initWithFrame:frame];
-	if(self) {
-		[self setUp];
-	}
-	return self;
-}
-
--(void)setUp {
-	@try{
-	//self.frame = frame;
-	//first we need to set up the background
-	self.backgroundColor = [UIColor clearColor];
-
-	UIView *darkeningView = [[UIView alloc] initWithFrame:[[UIApplication sharedApplication] keyWindow].frame];
-	darkeningView.backgroundColor = [UIColor blackColor];
-	darkeningView.alpha = 0.7f;
-	[self addSubview:darkeningView];
-
-	UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-	UIVibrancyEffect *vibrancyEffect = [UIVibrancyEffect effectForBlurEffect:blurEffect];
-
-	UIVisualEffectView *visualEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-	UIVisualEffectView *vibrantEffectView = [[UIVisualEffectView alloc] initWithEffect:vibrancyEffect];
-
-	visualEffectView.frame = [[UIApplication sharedApplication] keyWindow].frame;
-	vibrantEffectView.frame = [[UIApplication sharedApplication] keyWindow].frame;
-
-	[self addSubview:vibrantEffectView];
-	[self addSubview:visualEffectView];
-
-	UIView *circleView = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width /2, self.frame.size.height/2, 80, 80)];
-	circleView.center = CGPointMake(self.frame.size.width /2, self.frame.size.height/3);
-	circleView.layer.cornerRadius = 40;
-	circleView.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.3];
-	[self addSubview:circleView];
-
-
-	UIImageView *iconImageView = [[UIImageView alloc] initWithFrame:CGRectMake(circleView.frame.origin.x, circleView.frame.origin.y, 40, 40)];
-	iconImageView.center = CGPointMake(circleView.frame.size.width /2, circleView.frame.size.height/2);
-
-	UIImage *image = self.icon;
-	iconImageView.image = image;
-	iconImageView.layer.minificationFilter = kCAFilterTrilinear;
-	iconImageView.contentMode = UIViewContentModeScaleToFill;
-	[circleView addSubview:iconImageView];
-
-	__block UILabel *loadingLabel = [[UILabel alloc] initWithFrame:CGRectMake(circleView.frame.origin.x, circleView.frame.origin.y-50, 120, 50)];
-
-	loadingLabel.text = @"Loading";
-	loadingLabel.textColor = [UIColor whiteColor];
-	loadingLabel.center = CGPointMake(self.frame.size.width /2, circleView.frame.origin.y+100);
-
-	loadingLabel.font = [UIFont fontWithName:@".SFUIDisplay" size:26];
-
-	[self addSubview:loadingLabel];
-
-	__block int count = 0;
-	id animateLabel = ^{
-	    if(count > 2) {
-		   count = 1;
-	    } else {
-		   count++;
-	    }
-
-	    [UIView transitionWithView:loadingLabel
-					  duration:0.25f
-					   options:UIViewAnimationOptionTransitionCrossDissolve
-					animations:^{
-
-					    loadingLabel.text = [NSString stringWithFormat:@"Loading%@",  [@"" stringByPaddingToLength:count withString:@"." startingAtIndex:0]];
-
-					} completion:nil];
-	};
-
-	[NSTimer scheduledTimerWithTimeInterval:0.75
-							   target:animateLabel
-							 selector:@selector(invoke)
-							 userInfo:nil
-							  repeats:YES];
-	}
-	@catch(NSException *exc) {
-		NSLog(@"%@", exc.reason);
-	}
-}
-
-@end
-static DWLoadingView *loadingView = nil;
-
 @interface UIImage (Change)
 + (UIImage*)changeImage:(UIImage *)image toColor:(UIColor *)color;
 @end
@@ -136,8 +31,6 @@ static DWLoadingView *loadingView = nil;
 	return outImage;
 }
 %end
-
-static BOOL isLoading;
 
 NSInteger colorProfile;
 
@@ -323,7 +216,6 @@ static BOOL darkMode = NO;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
 %property (nonatomic, copy) NSString *lastFullURL;
-//%property (nonatomic, assign) DWLoadingView *loadingView;
 
 -(BOOL)didFinishDocumentLoad {
 
