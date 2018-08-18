@@ -375,6 +375,7 @@ static BOOL darkMode = NO;
 
 		if(!(nWhite > newWhite) && (nWhite != newWhite)) { //i cba to put it in one so i'll just do two conditions
 			NSLog(@"Page is still not dark after reinjection.");
+			//there needs to be more than this
 			[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
 		}
 
