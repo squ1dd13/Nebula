@@ -348,7 +348,6 @@ static BOOL darkMode = NO;
 		if(newWhite > white) {
 			NSLog(@"Page is darker.");
 		} else {
-			NSLog(@"Page did not go darker, injecting again.");
 
 			//this time we directly inject the CSS in a <style> tag
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
@@ -373,7 +372,6 @@ static BOOL darkMode = NO;
 		}
 
 		if(!(nWhite > newWhite) && (nWhite != newWhite)) { //i cba to put it in one so i'll just do two conditions
-			NSLog(@"Page is still not dark after reinjection.");
 			//there needs to be more than this
 			[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
 		}
@@ -390,7 +388,6 @@ static BOOL darkMode = NO;
 
 %new
 -(void)revertInjection {
-
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead]];
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"body\")[0].innerHTML = `%@`;", self.originalBody]];
 }
@@ -400,9 +397,7 @@ static BOOL darkMode = NO;
 	__block BOOL finished = NO;
 
 	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if(error) {
-			NSLog(@"JSErr: %@", error.localizedDescription);
-		}
+		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
 		finished = YES;
 	}];
 	while (!finished) {
