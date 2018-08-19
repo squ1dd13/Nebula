@@ -417,12 +417,6 @@ static NSCache *pageCache = [NSCache new];
 	return resultString;
 }
 
--(void)goBack {
-	%orig;
-	NSLog(@"skidaddle skidoodle your house is made of noodles");
-	[self reload];
-}
-
 %end
 
 @interface BrowserController : NSObject
