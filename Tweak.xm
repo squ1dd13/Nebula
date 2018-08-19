@@ -119,31 +119,29 @@ UIImage *resizeImage(UIImage *image, CGSize size) {
 }
 
 @interface BrowserToolbar : UIToolbar
-@property (nonatomic, assign) UIButton *btton;
+@property (nonatomic, assign) UIButton *darkButton;
 @property (nonatomic, assign) BOOL darkMode;
 @end
 
 static UIBarButtonItem *nightModeButton = nil;
 
 %hook BrowserToolbar
-%property (nonatomic, assign) UIButton *btton;
+%property (nonatomic, assign) UIButton *darkButton;
 %property (nonatomic, assign) BOOL darkMode;
 
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
 	//cheers pinpal
-	self.btton = [UIButton buttonWithType:UIButtonTypeCustom];
-	[self.btton setFrame:CGRectMake(0, 0, 20, 20)];
-	[self.btton addTarget:self action:@selector(nightMode) forControlEvents:UIControlEventTouchUpInside];
-	UIImage *imageToSet = [UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor];
-	[self.btton setImage:imageToSet forState:UIControlStateNormal];
 
-	UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(prefs:)];
-	[longPressGesture setMinimumPressDuration:1.0];
-	[self.btton addGestureRecognizer:longPressGesture];
+	self.darkButton = [UIButton buttonWithType:UIButtonTypeCustom];
+	[self.darkButton setFrame:CGRectMake(0, 0, 20, 20)];
+	[self.darkButton addTarget:self action:@selector(nightMode:) forControlEvents:UIControlEventTouchUpInside];
 
-	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.btton];
+	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateNormal];
+	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateSelected];
+
+	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
 	self.darkMode = NO;
 
 	NSMutableArray *buttons = [items mutableCopy];
@@ -155,32 +153,15 @@ static UIBarButtonItem *nightModeButton = nil;
 }
 
 %new
--(void)nightMode {
-	NSLog(@"Night mode");
-	//TODO: use UIImpactFeedbackGenerator for this
+-(void)nightMode:(UIButton *)button {
 	AudioServicesPlaySystemSound(1519);
-
-	if(!self.darkMode) {
-		UIImage *imageToSet = [UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) toColor:self.tintColor];
-		[self.btton setImage:imageToSet forState:UIControlStateNormal];
-		self.darkMode = YES;
-	} else {
-		UIImage *imageToSet = [UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor];
-		//[self.btton setImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) forState:UIControlStateNormal];
-		[self.btton setImage:imageToSet forState:UIControlStateNormal];
-		self.darkMode = NO;
-	}
-
-	nightModeButton.customView = self.btton;
-
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:nil userInfo:nil];
+	button.selected = !button.selected;
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
 }
 
 %new
 -(void)resetButton {
-	UIImage *imageToSet = [UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor];
-	[self.btton setImage:imageToSet forState:UIControlStateNormal];
-	self.darkMode = NO;
+	self.darkButton.selected = NO;
 }
 
 %end
@@ -188,6 +169,7 @@ static UIBarButtonItem *nightModeButton = nil;
 //TODO: change the colours in the CSS to darker or lighter by converting to rgb, making lighter/darker, then converting back to hex.
 
 static BOOL darkMode = NO;
+static NSCache *pageCache = [NSCache new];
 
 @interface TabDocument : NSObject
 @property (nonatomic, assign) BOOL hasInjected;
@@ -216,37 +198,49 @@ static BOOL darkMode = NO;
 %property (nonatomic, copy) NSString *lastHost;
 %property (nonatomic, copy) NSString *lastFullURL;
 
--(BOOL)didFinishDocumentLoad {
+-(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+	%orig;
+	NSLog(@"Navigation ended.");
 
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
 
-	if(darkMode) {
-		[self injectIntoURL:[((WKWebView *)[self valueForKey:@"webView"]) URL]];
+	if([pageCache objectForKey:webView.URL.absoluteString] && !darkMode) {
+		NSLog(@"Reverting from cache");
+		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", [pageCache objectForKey:webView.URL.absoluteString]]];
+		[pageCache removeObjectForKey:webView.URL.absoluteString];
+	} else {
+		[pageCache setObject:self.originalHead forKey:webView.URL.absoluteString];
 	}
 
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+
+	if(darkMode) {
+		[self injectIntoURL:[webView URL]];
+	} else {
+		self.shouldInject = NO;
+		[self revertInjection];
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+	}
+
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"DarkWebToggle" object:nil]; //clear up before we add it again
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection) name:@"DarkWebToggle" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"DarkWebToggle" object:nil];
 
 	[self inject]; //this doesn't necessarily mean we will inject, because that is decided later
-	return %orig;
 }
 
 %new
--(void)toggleInjection {
+-(void)toggleInjection:(NSNotification *)notification {
 	[[NSNotificationCenter defaultCenter] postNotificationName:(self.shouldInject) ? @"DarkWebDark" : @"DarkWebLight" object:nil userInfo:nil];
 	self.shouldInject = !self.shouldInject; //invert it, because we have now switched
 
-	if(!self.shouldInject) {
-		if(self.hasInjected) {
-			[self revertInjection];
-			darkMode = NO;
-		}
-	} else {
+	if([[notification object] boolValue]) {
 		self.hasInjected = NO;
 		[self inject];
 		darkMode = YES;
+	} else {
+		[self revertInjection];
+		darkMode = NO;
 	}
 }
 
@@ -378,16 +372,13 @@ static BOOL darkMode = NO;
 
 		self.hasInjected = YES;
 
-		NSLog(@"All done!");
-
 	}
-
-	NSLog(@"Injection method execution over.");
 	#pragma mark End injection
 }
 
 %new
 -(void)revertInjection {
+	NSLog(@"Reverting changes");
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead]];
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"body\")[0].innerHTML = `%@`;", self.originalBody]];
 }
@@ -424,6 +415,12 @@ static BOOL darkMode = NO;
 		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
 	}
 	return resultString;
+}
+
+-(void)goBack {
+	%orig;
+	NSLog(@"skidaddle skidoodle your house is made of noodles");
+	[self reload];
 }
 
 %end
