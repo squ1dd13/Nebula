@@ -124,7 +124,55 @@ UIImage *resizeImage(UIImage *image, CGSize size) {
 @end
 
 static UIBarButtonItem *nightModeButton = nil;
+static NSString *stylesheetFromHex;
+static NSString *backupStylesheet;
 
+void loadStylesheetsFromFiles() {
+	#pragma mark Blocks
+	//changes a hex string to a plain string
+	NSString* (^fromHex)(NSString *) = ^(NSString *str){
+		NSMutableString *newString = [[NSMutableString alloc] init];
+		int i = 0;
+		while (i < [str length]) {
+			NSString *hexChar = [str substringWithRange: NSMakeRange(i, 2)];
+			int value = 0;
+			sscanf([hexChar cStringUsingEncoding:NSASCIIStringEncoding], "%x", &value);
+			[newString appendFormat:@"%c", (char)value];
+			i+=2;
+		}
+		return ((NSString *)[newString copy]);
+	};
+
+	//changes a double hex string to a plain string
+	NSString* (^fromDoubleHex)(NSString *, NSString *) = ^(NSString *str, NSString *message) {
+		NSString *string = str;
+		string = fromHex(string);
+		NSString *removedMessage = [string stringByReplacingOccurrencesOfString:message withString:@""];
+		removedMessage = fromHex(removedMessage);
+		return ((NSString *)removedMessage);
+	};
+	#pragma mark End blocks
+
+	//loading in the stylesheet and decoding it
+	//also TODO: use newer, non-deprecated methods
+	NSError *err;
+	stylesheetFromHex = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
+	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
+
+	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+
+	backupStylesheet = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c66.st" encoding:NSUTF8StringEncoding error:&err];
+	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
+
+	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+}
+
+%ctor {
+	//load the stylesheets from files as soon as the tweak is loaded and store them in static variables. This way, we aren't loading them from the files every time and we don't need to worry about sandboxing as this is called from %ctor which is unsandboxed.
+	loadStylesheetsFromFiles();
+}
+
+//add button to toolbar
 %hook BrowserToolbar
 %property (nonatomic, assign) UIButton *darkButton;
 %property (nonatomic, assign) BOOL darkMode;
@@ -152,6 +200,7 @@ static UIBarButtonItem *nightModeButton = nil;
 	%orig([buttons copy], anim);
 }
 
+//called when the button is pressed
 %new
 -(void)nightMode:(UIButton *)button {
 	AudioServicesPlaySystemSound(1519);
@@ -159,6 +208,7 @@ static UIBarButtonItem *nightModeButton = nil;
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
 }
 
+//resets the button to its defaulkt value
 %new
 -(void)resetButton {
 	self.darkButton.selected = NO;
@@ -259,44 +309,6 @@ static NSCache *pageCache = [NSCache new];
 
 %new
 -(void)injectIntoURL:(NSURL *)URL {
-	#pragma mark Blocks
-	void (^fromHex)(NSString **) = ^(NSString **str){
-		NSMutableString *newString = [[NSMutableString alloc] init];
-		int i = 0;
-		while (i < [*str length]) {
-			NSString *hexChar = [*str substringWithRange: NSMakeRange(i, 2)];
-			int value = 0;
-			sscanf([hexChar cStringUsingEncoding:NSASCIIStringEncoding], "%x", &value);
-			[newString appendFormat:@"%c", (char)value];
-			i+=2;
-		}
-		*str = ((NSString *)[newString copy]);
-	};
-
-	void (^fromDoubleHex)(NSString **, NSString *) = ^(NSString **str, NSString *message) {
-		NSString *string = *str;
-		fromHex(&string);
-		NSString *removedMessage = [string stringByReplacingOccurrencesOfString:message withString:@""];
-		fromHex(&removedMessage);
-		*str = ((NSString *)removedMessage);
-	};
-	#pragma mark End blocks
-
-	//loading in the stylesheet and decoding it
-	//TODO: load these once into variables, we really don't want to load from files every time
-	//also TODO: use newer, non-deprecated methods
-	NSError *err;
-	NSString *stylesheetFromHex = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
-	fromDoubleHex(&stylesheetFromHex, @"You can go away now.\n");
-
-	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
-
-	NSString *backupStylesheet = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c66.st" encoding:NSUTF8StringEncoding error:&err];
-	fromDoubleHex(&backupStylesheet, @"You can go away now.\n");
-
-	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
-
-	#pragma mark Injection
 	if(URL && self.shouldInject) {
 		//take the first image so we can compare later
 		UIView *viewForDrawing = ((WKWebView *)[self valueForKey:@"webView"]);
@@ -373,7 +385,6 @@ static NSCache *pageCache = [NSCache new];
 		self.hasInjected = YES;
 
 	}
-	#pragma mark End injection
 }
 
 %new
