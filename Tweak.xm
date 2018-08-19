@@ -319,7 +319,7 @@ static NSCache *pageCache = [NSCache new];
 		NSString *modifiedHead = @"";
 
 		modifiedHead = [head copy];
-		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];//[modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/dark_24.css\" type=\"text/css\">"];
+		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 		modifiedHead = ([[URL absoluteString] containsString:@"github.com"]) ? [modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/gh.css\" type=\"text/css\">"] : modifiedHead;
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
@@ -460,41 +460,6 @@ static NSCache *pageCache = [NSCache new];
 			[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
 		});
 	}
-
-}
-
-%new
--(void)downloadAndEncryptStylesheet {
-	void (^toHex)(NSString **) = ^(NSString **str){
-		NSUInteger len = [*str length];
-		unichar *chars = (unichar *)malloc(len * sizeof(unichar));
-		[*str getCharacters:chars];
-
-		NSMutableString *hexString = [[NSMutableString alloc] init];
-
-		for(NSUInteger i = 0; i < len; i++ )
-		{
-			[hexString appendFormat:@"%02x", chars[i]];
-		}
-		free(chars);
-		*str = ((NSString *)[hexString copy]);
-	};
-
-	void (^write)(void) = ^{
-		NSString *styleSheetURL = @"http://squ1dd13.tk/dark_24.css";
-		NSString *anotherOne = [NSString stringWithContentsOfURL:[NSURL URLWithString:@"http://squ1dd13.tk/sites.css"]];
-		NSString *styleSheetCSS = [NSString stringWithContentsOfURL:[NSURL URLWithString:styleSheetURL]];
-		toHex(&styleSheetCSS);
-		toHex(&anotherOne);
-		NSString *hexWithMessage = [@"You can go away now.\n" stringByAppendingString:styleSheetCSS];
-		NSString *hexWithAnotherMessage = [@"You can go away now.\n" stringByAppendingString:anotherOne];
-		toHex(&hexWithMessage); //a second time for security
-		toHex(&hexWithAnotherMessage);
-		[hexWithMessage writeToFile:@"/var/mobile/Library/Safari/7374796c65.st" atomically:YES];
-		[hexWithAnotherMessage writeToFile:@"/var/mobile/Library/Safari/7374796c66.st" atomically:YES];
-	};
-
-	if(![[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/Library/Safari/7374796c65.st"] || ![[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/Library/Safari/7374796c66.st"]) write();
 
 }
 
