@@ -4,9 +4,9 @@ GO_EASY_ON_ME = 1
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = Luna
-Luna_FILES = Tweak.xm
-Luna_CFLAGS = -fobjc-arc
+TWEAK_NAME = Nebula
+Nebula_FILES = Tweak.xm
+Nebula_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

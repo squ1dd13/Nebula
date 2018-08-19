@@ -1,9 +1,9 @@
-Package: com.squ1dd13.luna
-Name: Luna
+Package: com.octodev.luna
+Name: Nebula
 Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: Safari webpage darkmode.
-Maintainer: Squ1dd13
-Author: Squ1dd13
+Maintainer: OctoDev Team
+Author: OctoDev Team
 Section: Tweaks
