@@ -326,9 +326,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-		NSString *modifiedHead = [head copy];
-
-		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
+		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
@@ -336,11 +334,9 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		CGFloat nWhite = 0.0;
 
 		if(!(newWhite > white)) {
-
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
 			modifiedHead = [modifiedHead stringByAppendingString:newStyleTag];
 
-			//i'm high on js
 			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
 			nWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
@@ -350,9 +346,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 			//this may need to be removed in the future (it isn't often needed anyway)
 			//[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
 		}
-
 		self.hasInjected = YES;
-
 	}
 }
 
