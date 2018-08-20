@@ -120,7 +120,6 @@ UIImage *resizeImage(UIImage *image, CGSize size) {
 
 @interface BrowserToolbar : UIToolbar
 @property (nonatomic, assign) UIButton *darkButton;
-@property (nonatomic, assign) BOOL darkMode;
 @end
 
 static UIBarButtonItem *nightModeButton = nil;
@@ -175,7 +174,6 @@ void loadStylesheetsFromFiles() {
 //add button to toolbar
 %hook BrowserToolbar
 %property (nonatomic, assign) UIButton *darkButton;
-%property (nonatomic, assign) BOOL darkMode;
 
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
@@ -190,7 +188,6 @@ void loadStylesheetsFromFiles() {
 	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateSelected];
 
 	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
-	self.darkMode = NO;
 
 	NSMutableArray *buttons = [items mutableCopy];
 	UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
@@ -211,15 +208,13 @@ void loadStylesheetsFromFiles() {
 //resets the button to its default value
 %new
 -(void)resetButton {
-	self.darkButton.selected = NO;
+	[self.darkButton setSelected:NO];
 }
 
 %end
 
 @interface TabDocument : NSObject
-@property (nonatomic, assign) BOOL hasInjected;
 @property (nonatomic, assign) BOOL shouldInject;
-@property (nonatomic, assign) BOOL injectedForThisPage;
 @property (nonatomic, copy) NSString *originalHead;
 @property (nonatomic, copy) NSString *originalBody;
 @property (nonatomic, copy) NSString *lastHost;
@@ -248,9 +243,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 }
 
 %hook TabDocument
-%property (nonatomic, assign) BOOL hasInjected;
 %property (nonatomic, assign) BOOL shouldInject;
-%property (nonatomic, assign) BOOL injectedForThisPage;
 %property (nonatomic, copy) NSString *originalHead;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
@@ -260,6 +253,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 	%orig;
 	NSLog(@"Navigation ended.");
 
+	//back up the original values
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
 
@@ -283,27 +277,21 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 	[[NSNotificationCenter defaultCenter] postNotificationName:(self.shouldInject) ? @"DarkWebDark" : @"DarkWebLight" object:nil userInfo:nil];
 	self.shouldInject = !self.shouldInject; //invert it, because we have now switched
 
-	if([[notification object] boolValue]) {
-		self.hasInjected = NO;
-		[self inject];
-		darkMode = YES;
-	} else {
-		[self revertInjection];
-		darkMode = NO;
-	}
+	self.shouldInject = [[notification object] boolValue];
+	darkMode = [[notification object] boolValue];
+
+	[[notification object] boolValue] ? [self inject] : [self revertInjection];
 }
 
 -(void)reload {
 	%orig;
-	self.hasInjected = NO;
+	self.shouldInject = YES;
 	[self inject];
 }
 
 %new
 -(void)inject {
-	if(!self.hasInjected) {
-		[self goDark];
-	}
+	[self goDark];
 }
 
 %new
@@ -327,12 +315,6 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 			nWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		}
-
-		if(!(nWhite > newWhite && nWhite != newWhite)) {
-			//this may need to be removed in the future (it isn't often needed anyway)
-			//[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
-		}
-		self.hasInjected = YES;
 	}
 }
 
@@ -340,7 +322,6 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 -(void)revertInjection {
 	NSLog(@"Reverting changes");
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead]];
-	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"body\")[0].innerHTML = `%@`;", self.originalBody]];
 }
 
 %new
@@ -420,7 +401,6 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 			[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
 		});
 	}
-
 }
 
 %end
