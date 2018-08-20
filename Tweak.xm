@@ -276,7 +276,7 @@ static NSCache *pageCache = [NSCache new];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"DarkWebToggle" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"DarkWebToggle" object:nil];
 
-	[self inject]; //this doesn't necessarily mean we will inject, because that is decided later
+	[self inject];
 }
 
 %new
@@ -332,7 +332,6 @@ static NSCache *pageCache = [NSCache new];
 
 		modifiedHead = [head copy];
 		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
-		modifiedHead = ([[URL absoluteString] containsString:@"github.com"]) ? [modifiedHead stringByAppendingString:@"\n<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/gh.css\" type=\"text/css\">"] : modifiedHead;
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
