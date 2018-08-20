@@ -168,7 +168,7 @@ void loadStylesheetsFromFiles() {
 }
 
 %ctor {
-	//load the stylesheets from files as soon as the tweak is loaded and store them in static variables. This way, we aren't loading them from the files every time and we don't need to worry about sandboxing as this is called from %ctor which is unsandboxed.
+	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
 	loadStylesheetsFromFiles();
 }
 
