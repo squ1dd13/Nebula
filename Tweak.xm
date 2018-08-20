@@ -362,8 +362,6 @@ static NSCache *pageCache = [NSCache new];
 			modifiedHead = [modifiedHead stringByAppendingString:newStyleTag];
 			HTML = replaceStr(HTML, reInjectHead, modifiedHead);
 
-			//removing the code from last time we injected is important
-			HTML = replaceStr(HTML, @"<link rel=\"stylesheet\" href=\"http://squ1dd13.tk/dark_24.css\" type=\"text/css\">", @"");
 			//i'm high on js
 			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
