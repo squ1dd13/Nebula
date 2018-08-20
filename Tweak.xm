@@ -156,12 +156,12 @@ void loadStylesheetsFromFiles() {
 	//loading in the stylesheet and decoding it
 	//also TODO: use newer, non-deprecated methods
 	NSError *err;
-	stylesheetFromHex = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
+	stylesheetFromHex = [NSString stringWithContentsOfFile:@"/Library/Application Support/7361666172696461726b/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
 	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
 
-	backupStylesheet = [NSString stringWithContentsOfFile:@"/var/mobile/Library/Safari/7374796c66.st" encoding:NSUTF8StringEncoding error:&err];
+	backupStylesheet = [NSString stringWithContentsOfFile:@"/Library/Application Support/7361666172696461726b/7374796c66.st" encoding:NSUTF8StringEncoding error:&err];
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
