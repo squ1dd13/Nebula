@@ -182,6 +182,7 @@ void loadStylesheetsFromFiles() {
 	self.darkButton = [UIButton buttonWithType:UIButtonTypeCustom];
 	[self.darkButton setFrame:CGRectMake(0, 0, 20, 20)];
 	[self.darkButton addTarget:self action:@selector(nightMode:) forControlEvents:UIControlEventTouchUpInside];
+	[self.darkButton setSelected:darkMode];
 
 	//cheers pinpal
 	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateNormal];
