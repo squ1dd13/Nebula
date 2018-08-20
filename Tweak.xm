@@ -308,14 +308,16 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		CGFloat newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		CGFloat nWhite = 0.0;
 
-		if(!(newWhite > white)) {
+		//TODO: WHITE CALCULATION IS CURRENTLY NOT WORKING AS SECOND WHITE VALUE IS CALCULATED BEFORE THE FIRST STYLESHEET HAS FINISHED INJECTING!
+		/*if((newWhite >= white)) {
+			//did not make webpage darker - try second stylesheet
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
-			modifiedHead = [modifiedHead stringByAppendingString:newStyleTag];
+			modifiedHead = [head stringByAppendingString:newStyleTag];
 
 			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
 			nWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-		}
+		}*/
 	}
 }
 
