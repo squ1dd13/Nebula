@@ -126,6 +126,8 @@ UIImage *resizeImage(UIImage *image, CGSize size) {
 static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
+static BOOL darkMode = NO;
+static NSCache *pageCache = [NSCache new];
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
@@ -153,8 +155,6 @@ void loadStylesheetsFromFiles() {
 	};
 	#pragma mark End blocks
 
-	//loading in the stylesheet and decoding it
-	//also TODO: use newer, non-deprecated methods
 	NSError *err;
 	stylesheetFromHex = [NSString stringWithContentsOfFile:@"/Library/Application Support/7361666172696461726b/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
 	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
@@ -180,12 +180,12 @@ void loadStylesheetsFromFiles() {
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
-	//cheers pinpal
 
 	self.darkButton = [UIButton buttonWithType:UIButtonTypeCustom];
 	[self.darkButton setFrame:CGRectMake(0, 0, 20, 20)];
 	[self.darkButton addTarget:self action:@selector(nightMode:) forControlEvents:UIControlEventTouchUpInside];
 
+	//cheers pinpal
 	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateNormal];
 	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateSelected];
 
@@ -208,18 +208,13 @@ void loadStylesheetsFromFiles() {
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
 }
 
-//resets the button to its defaulkt value
+//resets the button to its default value
 %new
 -(void)resetButton {
 	self.darkButton.selected = NO;
 }
 
 %end
-
-//TODO: change the colours in the CSS to darker or lighter by converting to rgb, making lighter/darker, then converting back to hex.
-
-static BOOL darkMode = NO;
-static NSCache *pageCache = [NSCache new];
 
 @interface TabDocument : NSObject
 @property (nonatomic, assign) BOOL hasInjected;
@@ -267,15 +262,6 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
-
-	if([pageCache objectForKey:webView.URL.absoluteString] && !darkMode) {
-		NSLog(@"Reverting from cache");
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", [pageCache objectForKey:webView.URL.absoluteString]]];
-		[pageCache removeObjectForKey:webView.URL.absoluteString];
-	} else {
-		[pageCache setObject:self.originalHead forKey:webView.URL.absoluteString];
-	}
-
 
 	if(darkMode) {
 		[self goDark];
