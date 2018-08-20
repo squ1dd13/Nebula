@@ -350,7 +350,7 @@ static NSCache *pageCache = [NSCache new];
 		[newAverageColor getWhite:&newWhite alpha:&newAlpha];
 
 
-		CGFloat nWhite, nAlpha;
+		CGFloat nWhite = 0.0, nAlpha;
 		if(newWhite > white) {
 			NSLog(@"Page is darker.");
 		} else {
