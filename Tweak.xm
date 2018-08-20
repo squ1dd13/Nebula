@@ -230,14 +230,27 @@ static NSCache *pageCache = [NSCache new];
 @property (nonatomic, copy) NSString *lastHost;
 @property (nonatomic, copy) NSString *lastFullURL;
 -(void)inject;
--(void)injectIntoURL:(NSURL *)URL;
+-(void)goDark;
 -(void)reload;
 -(void)runJavaScript:(NSString *)js;
 -(NSString *)getJavaScriptOutput:(NSString *)js;
 -(void)revertInjection;
 @end
 
+CGFloat whiteOf(UIView *viewForDrawing) {
+	CGSize viewSize = viewForDrawing.bounds.size;
+	UIGraphicsBeginImageContextWithOptions(viewSize, NO, 0.0);
+	[viewForDrawing drawViewHierarchyInRect:CGRectMake(0, 0, viewSize.width, viewSize.height) afterScreenUpdates:YES];
+	UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
 
+	//calculate the average colour of that image to see if the injection worked
+	CGFloat white, alpha;
+	UIColor *averageColor = avgColor(image);
+	[averageColor getWhite:&white alpha:&alpha];
+
+	return white;
+}
 
 %hook TabDocument
 %property (nonatomic, assign) BOOL hasInjected;
@@ -265,7 +278,7 @@ static NSCache *pageCache = [NSCache new];
 
 
 	if(darkMode) {
-		[self injectIntoURL:[webView URL]];
+		[self goDark];
 	} else {
 		self.shouldInject = NO;
 		[self revertInjection];
@@ -303,80 +316,39 @@ static NSCache *pageCache = [NSCache new];
 %new
 -(void)inject {
 	if(!self.hasInjected) {
-		[self injectIntoURL:[((WKWebView *)[self valueForKey:@"webView"]) URL]];
+		[self goDark];
 	}
 }
 
 %new
--(void)injectIntoURL:(NSURL *)URL {
-	if(URL && self.shouldInject) {
-		//take the first image so we can compare later
-		UIView *viewForDrawing = ((WKWebView *)[self valueForKey:@"webView"]);
-		CGSize viewSize = viewForDrawing.bounds.size;
-		UIGraphicsBeginImageContextWithOptions(viewSize, NO, 0.0);
-		[viewForDrawing drawViewHierarchyInRect:CGRectMake(0, 0, viewSize.width, viewSize.height) afterScreenUpdates:YES];
-		UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-		UIGraphicsEndImageContext();
+-(void)goDark {
+	if(self.shouldInject) {
+		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 
-		//calculate the average colour of that image to see if the injection worked
-		CGFloat white, alpha;
-		UIColor *averageColor = avgColor(image);
-		[averageColor getWhite:&white alpha:&alpha];
+		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+		NSString *modifiedHead = [head copy];
 
-
-		NSString *HTML = [self getJavaScriptOutput:@"document.documentElement.outerHTML"];
-
-		NSString *head = stringBetween(HTML, @"<head>", @"</head>");
-
-		NSString *modifiedHead = @"";
-
-		modifiedHead = [head copy];
 		modifiedHead = [modifiedHead stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
-		//now we get our second image to compare to the first
-		UIView *viewInjected = ((WKWebView *)[self valueForKey:@"webView"]);
-		CGSize newViewSize = viewInjected.bounds.size;
-		UIGraphicsBeginImageContextWithOptions(newViewSize, NO, 0.0);
-		[viewInjected drawViewHierarchyInRect:CGRectMake(0, 0, newViewSize.width, newViewSize.height) afterScreenUpdates:YES];
-		UIImage *injectedImage = UIGraphicsGetImageFromCurrentImageContext();
-		UIGraphicsEndImageContext();
+		CGFloat newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+		CGFloat nWhite = 0.0;
 
-		//calculate the average colour of that image to see if the injection worked
-		CGFloat newWhite, newAlpha;
-		UIColor *newAverageColor = avgColor(injectedImage);
-		[newAverageColor getWhite:&newWhite alpha:&newAlpha];
+		if(!(newWhite > white)) {
 
-
-		CGFloat nWhite = 0.0, nAlpha;
-		if(newWhite > white) {
-			NSLog(@"Page is darker.");
-		} else {
-
-			//this time we directly inject the CSS in a <style> tag
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
-			NSString *reInjectHead = stringBetween(HTML, @"<head>", @"</head>");
-			modifiedHead = [reInjectHead copy];
 			modifiedHead = [modifiedHead stringByAppendingString:newStyleTag];
-			HTML = replaceStr(HTML, reInjectHead, modifiedHead);
 
 			//i'm high on js
 			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
-			//take another image so we can see if it worked this time
-			UIGraphicsBeginImageContextWithOptions(newViewSize, NO, 0.0);
-			[viewInjected drawViewHierarchyInRect:CGRectMake(0, 0, newViewSize.width, newViewSize.height) afterScreenUpdates:YES];
-			injectedImage = UIGraphicsGetImageFromCurrentImageContext();
-			UIGraphicsEndImageContext();
-
-			newAverageColor = avgColor(injectedImage);
-			[newAverageColor getWhite:&nWhite alpha:&nAlpha];
+			nWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		}
 
-		if(!(nWhite > newWhite) && (nWhite != newWhite)) { //i cba to put it in one so i'll just do two conditions
-			//there needs to be more than this
-			[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
+		if(!(nWhite > newWhite && nWhite != newWhite)) {
+			//this may need to be removed in the future (it isn't often needed anyway)
+			//[self runJavaScript:@"document.getElementsByTagName(\"body\")[0].style.backgroundColor = \"#000\";"];
 		}
 
 		self.hasInjected = YES;
