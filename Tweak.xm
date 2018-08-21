@@ -129,6 +129,9 @@ static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles = [NSMutableDictionary dictionary];
 
 void loadStylesheetsFromFiles() {
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+
 	#pragma mark Blocks
 	//changes a hex string to a plain string
 	NSString* (^fromHex)(NSString *) = ^(NSString *str){
@@ -164,8 +167,8 @@ void loadStylesheetsFromFiles() {
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+	});
 
-	customStyles = [NSMutableDictionary new];
 	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 	NSError *err = nil;
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
@@ -192,6 +195,7 @@ void loadStylesheetsFromFiles() {
 			NSLog(@"styles %@", customStyles);
 		}
 	}
+
 }
 
 %ctor {
@@ -414,7 +418,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
-
+	loadStylesheetsFromFiles();
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
