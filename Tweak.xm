@@ -165,35 +165,32 @@ void loadStylesheetsFromFiles() {
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
 
-	if([[customStyles allKeys] count] == 0) {
+	customStyles = [NSMutableDictionary new];
+	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
+	NSError *err = nil;
+	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
+	NSArray *validStyles;
+	if(err) {
+		NSLog(@"Failed to fetch styles folder contents");
+	} else {
+		//we only want css files. .min.css will also load
+		 validStyles = [possibleStyles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF ENDSWITH %@", @"css"]];
+		//files should have a /* <host of site> */ comment at the top
+		for(NSString *file in validStyles) {
+			NSString *fileContents = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:file] encoding:NSUTF8StringEncoding error:nil];
 
-		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
-		NSError *err = nil;
-		NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
-		NSArray *validStyles;
-		if(err) {
-			NSLog(@"Failed to fetch styles folder contents");
-		} else {
-			//we only want css files. .min.css will also load
-		 	validStyles = [possibleStyles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF ENDSWITH %@", @"css"]];
-			//files should have a /* <host of site> */ comment at the top
-			for(NSString *file in validStyles) {
-				NSString *fileContents = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:file] encoding:NSUTF8StringEncoding error:nil];
+			NSString *hostLine = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]][0];
 
-				NSString *hostLine = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]][0];
-
-				if(!([hostLine hasPrefix:@"/*"] && [hostLine hasSuffix:@"*/"])) {
-					continue;
-				}
-				NSString *host = stringBetween(hostLine, @"/*", @"*/");
-				NSLog(@"%@", host);
-				host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-				[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
-				NSLog(@"%@", file);
-				NSLog(@"styles %@", customStyles);
+			if(!([hostLine hasPrefix:@"/*"] && [hostLine hasSuffix:@"*/"])) {
+				continue;
 			}
+			NSString *host = stringBetween(hostLine, @"/*", @"*/");
+			NSLog(@"%@", host);
+			host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
+			NSLog(@"%@", file);
+			NSLog(@"styles %@", customStyles);
 		}
-
 	}
 }
 
