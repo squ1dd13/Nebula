@@ -129,6 +129,9 @@ static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles = [NSMutableDictionary dictionary];
 
 void loadStylesheetsFromFiles() {
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+
 	#pragma mark Blocks
 	//changes a hex string to a plain string
 	NSString* (^fromHex)(NSString *) = ^(NSString *str){
@@ -164,8 +167,8 @@ void loadStylesheetsFromFiles() {
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+	});
 
-	customStyles = [NSMutableDictionary new];
 	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 	err = nil;
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
@@ -186,12 +189,19 @@ void loadStylesheetsFromFiles() {
 			}
 			NSString *host = stringBetween(hostLine, @"/*", @"*/");
 			NSLog(@"%@", host);
+			if([host containsString:@","]) {
+				NSArray *hosts = [host componentsSeparatedByString:@","];
+				for(NSString *h in hosts) {
+					[customStyles setValue:file forKey:[h stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+				}
+			}
 			host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
 			NSLog(@"%@", file);
 			NSLog(@"styles %@", customStyles);
 		}
 	}
+
 }
 
 %ctor {
@@ -338,13 +348,12 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
 			usingCustom = YES;
-			NSLog(@"Found custom stylesheet for site.");
-			stylesheetFromHex = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			stylesheetFromHex = custom;
 		}
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
-		NSLog(@"%@", modifiedHead);
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
 			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		}];
@@ -414,7 +423,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
-
+	loadStylesheetsFromFiles();
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
