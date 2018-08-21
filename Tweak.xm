@@ -297,23 +297,26 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 %new
 -(void)goDark {
 	if(self.shouldInject) {
-		__block CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		__block CGFloat newWhite;
 
-		__block NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-		__block NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
+		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
 			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-			if((newWhite >= white - 0.2)) {
-				//did not make webpage darker - try second stylesheet
-				NSLog(@"Injecting again.");
-				NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
-				modifiedHead = [head stringByAppendingString:newStyleTag];
-
-				[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
-			}
 		}];
+
+		//the css has been injected into the head by this point but the webview hasn't changed to reflect these changes
+
+		if((newWhite >= white - 0.2)) {
+			//did not make webpage darker - try second stylesheet
+			NSLog(@"Injecting again.");
+			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
+			modifiedHead = [head stringByAppendingString:newStyleTag];
+
+			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
+		}
 	}
 }
 
@@ -329,8 +332,8 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
-		[comp invoke];
 		finished = YES;
+		[comp invoke];
 	}];
 	while (!finished) {
 		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
