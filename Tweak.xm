@@ -348,13 +348,12 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
 			usingCustom = YES;
-			NSLog(@"Found custom stylesheet for site.");
-			stylesheetFromHex = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			stylesheetFromHex = custom;
 		}
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
-		NSLog(@"%@", modifiedHead);
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
 			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		}];
