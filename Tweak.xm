@@ -126,7 +126,7 @@ static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
-static NSCache *pageCache = [NSCache new];
+static CGFloat lastWhite;
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
@@ -305,19 +305,17 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
-		CGFloat newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-		CGFloat nWhite = 0.0;
 
 		//TODO: WHITE CALCULATION IS CURRENTLY NOT WORKING AS SECOND WHITE VALUE IS CALCULATED BEFORE THE FIRST STYLESHEET HAS FINISHED INJECTING!
-		/*if((newWhite >= white)) {
+		if((lastWhite >= white - 0.2)) {
 			//did not make webpage darker - try second stylesheet
+			NSLog(@"Injecting again.");
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
 			modifiedHead = [head stringByAppendingString:newStyleTag];
 
 			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 
-			nWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-		}*/
+		}
 	}
 }
 
@@ -333,6 +331,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
+		lastWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		finished = YES;
 	}];
 	while (!finished) {
