@@ -167,7 +167,7 @@ void loadStylesheetsFromFiles() {
 
 	customStyles = [NSMutableDictionary new];
 	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
-	NSError *err = nil;
+	err = nil;
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
 	NSArray *validStyles;
 	if(err) {
