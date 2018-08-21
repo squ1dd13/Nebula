@@ -126,12 +126,9 @@ static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
-static NSMutableDictionary *customStyles = [NSMutableDictionary dictionary];
+static NSMutableDictionary *customStyles;
 
 void loadStylesheetsFromFiles() {
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-
 	#pragma mark Blocks
 	//changes a hex string to a plain string
 	NSString* (^fromHex)(NSString *) = ^(NSString *str){
@@ -167,10 +164,11 @@ void loadStylesheetsFromFiles() {
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
-	});
+
+	//load custom stylesheets:
+	customStyles = [NSMutableDictionary dictionary];
 
 	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
-	err = nil;
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
 	NSArray *validStyles;
 	if(err) {
@@ -423,7 +421,6 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
-	loadStylesheetsFromFiles();
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
