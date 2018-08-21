@@ -332,18 +332,20 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 		__block BOOL usingCustom = NO;
 		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
-		if(![host hasSuffix:@"www."]) {
+		if(![host containsString:@"www."]) {
 			host = [@"www." stringByAppendingString:host];
 		}
+		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
+		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
 			usingCustom = YES;
 			NSLog(@"Found custom stylesheet for site.");
-			stylesheetFromHex = [NSString stringWithContentsOfFile:[customStyles valueForKey:host] encoding:NSUTF8StringEncoding error:nil];
+			stylesheetFromHex = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
 		}
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
-
+		NSLog(@"%@", modifiedHead);
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
 			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		}];
@@ -413,6 +415,38 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
+<<<<<<< Updated upstream
+=======
+	if([[customStyles allKeys] count] == 0) {
+
+		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
+		NSError *err = nil;
+		NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
+		NSArray *validStyles;
+		if(err) {
+			NSLog(@"Failed to fetch styles folder contents");
+		} else {
+			//we only want css files. .min.css will also load
+		 	validStyles = [possibleStyles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF ENDSWITH %@", @"css"]];
+			//files should have a /* <host of site> */ comment at the top
+			for(NSString *file in validStyles) {
+				NSString *fileContents = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:file] encoding:NSUTF8StringEncoding error:nil];
+
+				NSString *hostLine = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]][0];
+
+				if(!([hostLine hasPrefix:@"/*"] && [hostLine hasSuffix:@"*/"])) {
+					continue;
+				}
+				NSString *host = stringBetween(hostLine, @"/*", @"*/");
+				NSLog(@"%@", host);
+				host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+				[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
+				NSLog(@"%@", file);
+				NSLog(@"styles %@", customStyles);
+			}
+		}
+
+>>>>>>> Stashed changes
 	}
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
