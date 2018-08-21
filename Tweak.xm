@@ -384,7 +384,8 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
-	if([[customStyles allKeys] count] == 0) {
+	if(!customStyles) { //this needs to be changed
+		customStyles = [NSMutableDictionary dictionary];
 		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 		NSError *err = nil;
 		NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
