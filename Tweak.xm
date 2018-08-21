@@ -126,7 +126,6 @@ static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
-static CGFloat lastWhite;
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
@@ -223,7 +222,7 @@ void loadStylesheetsFromFiles() {
 -(void)inject;
 -(void)goDark;
 -(void)reload;
--(void)runJavaScript:(NSString *)js;
+-(void)runJavaScript:(NSString *)js completion:(id)comp;
 -(NSString *)getJavaScriptOutput:(NSString *)js;
 -(void)revertInjection;
 @end
@@ -298,40 +297,39 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 %new
 -(void)goDark {
 	if(self.shouldInject) {
-		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+		__block CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+		__block CGFloat newWhite;
 
-		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
+		__block NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+		__block NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
+		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
+			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+			if((newWhite >= white - 0.2)) {
+				//did not make webpage darker - try second stylesheet
+				NSLog(@"Injecting again.");
+				NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
+				modifiedHead = [head stringByAppendingString:newStyleTag];
 
-
-		//TODO: WHITE CALCULATION IS CURRENTLY NOT WORKING AS SECOND WHITE VALUE IS CALCULATED BEFORE THE FIRST STYLESHEET HAS FINISHED INJECTING!
-		if((lastWhite >= white - 0.2)) {
-			//did not make webpage darker - try second stylesheet
-			NSLog(@"Injecting again.");
-			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
-			modifiedHead = [head stringByAppendingString:newStyleTag];
-
-			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
-
-		}
+				[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
+			}
+		}];
 	}
 }
 
 %new
 -(void)revertInjection {
 	NSLog(@"Reverting changes");
-	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead]];
+	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
 }
 
 %new
--(void)runJavaScript:(NSString *)js {
+-(void)runJavaScript:(NSString *)js completion:(void (^)())comp {
 	__block BOOL finished = NO;
 
 	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
-		lastWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
+		[comp invoke];
 		finished = YES;
 	}];
 	while (!finished) {
