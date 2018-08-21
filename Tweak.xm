@@ -126,6 +126,7 @@ static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
+static NSMutableDictionary *customStyles = [NSMutableDictionary dictionary];
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
@@ -300,6 +301,17 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
 		__block CGFloat newWhite;
 
+		__block BOOL usingCustom = NO;
+		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
+		if(![host hasSuffix:@"www."]) {
+			host = [@"www." stringByAppendingString:host];
+		}
+		if([customStyles valueForKey:host]) {
+			usingCustom = YES;
+			NSLog(@"Found custom stylesheet for site.");
+			stylesheetFromHex = [NSString stringWithContentsOfFile:[customStyles valueForKey:host] encoding:NSUTF8StringEncoding error:nil];
+		}
+
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
 
@@ -309,7 +321,7 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 		//the css has been injected into the head by this point but the webview hasn't changed to reflect these changes
 
-		if((newWhite >= white - 0.2)) {
+		if((newWhite >= white - 0.2) && !usingCustom) {
 			//did not make webpage darker - try second stylesheet
 			NSLog(@"Injecting again.");
 			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
@@ -372,6 +384,35 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 
 -(void)setWebView:(id)web {
 	%orig;
+	if([[customStyles allKeys] count] == 0) {
+		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
+		NSError *err = nil;
+		NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
+		NSArray *validStyles;
+		if(err) {
+			NSLog(@"Failed to fetch styles folder contents");
+		} else {
+			//we only want css files. .min.css will also load
+		 	validStyles = [possibleStyles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF ENDSWITH %@", @"css"]];
+			//files should have a /* <host of site> */ comment at the top
+			for(NSString *file in validStyles) {
+				NSString *fileContents = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:file] encoding:NSUTF8StringEncoding error:nil];
+
+				NSString *hostLine = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]][0];
+
+				if(!([hostLine hasPrefix:@"/*"] && [hostLine hasSuffix:@"*/"])) {
+					continue;
+				}
+				NSString *host = stringBetween(hostLine, @"/*", @"*/");
+				NSLog(@"%@", host);
+				host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+				[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
+				NSLog(@"%@", file);
+				NSLog(@"styles %@", customStyles);
+			}
+		}
+
+	}
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
