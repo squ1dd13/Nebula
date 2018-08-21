@@ -30,3 +30,11 @@
 body panel panel-body {
   background-color: #303030;
 }
+
+img {
+    position:relative;
+}
+
+img > *, img~* * {
+    background:#fff0!important;
+}
