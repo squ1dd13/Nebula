@@ -189,6 +189,12 @@ void loadStylesheetsFromFiles() {
 			}
 			NSString *host = stringBetween(hostLine, @"/*", @"*/");
 			NSLog(@"%@", host);
+			if([host containsString:@","]) {
+				NSArray *hosts = [host componentsSeparatedByString:@","];
+				for(NSString *h in hosts) {
+					[customStyles setValue:file forKey:[h stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+				}
+			}
 			host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
 			NSLog(@"%@", file);
