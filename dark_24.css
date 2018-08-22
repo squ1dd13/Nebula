@@ -117,3 +117,35 @@ code, pre, code *, pre *, textarea {
     color:#858c93!important;
 }
 /* End StackOverflow */
+
+/* Packix */
+.package-container panel a panel-body, .modern panel-body {
+    background:NEBULA_DARKER !important;
+    box-shadow:none!important;
+}
+
+.package-container panel a panel-body * {
+    background:#fff0 !important;
+    color:NEBULA_TEXT!important;
+}
+
+.modern panel-body *, .review-list li * {
+    background:#fff0 !important;
+}
+
+.review-list li {
+    background: NEBULA_DARK !important;
+}
+
+.review-rating, .review-rating *, .rating-stats>tbody>tr>td, .rating-stats>tbody>tr>td * {
+    color: #eebd10!important;
+}
+
+.changes-more>div {
+    background: linear-gradient(90deg,#30c381,#089e46)!important;
+    background-image: linear-gradient(90deg, rgb(48, 195, 129), rgb(8, 158, 70))!important;
+    background-clip:text!important;
+    -webkit-background-clip:text!important;
+    text-shadow:none!important;
+}
+/* End Packix */
