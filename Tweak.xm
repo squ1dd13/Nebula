@@ -1,3 +1,8 @@
+#define SETTINGS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebulacolors.plist"
+#define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
+#define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
+#define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
+
 @import WebKit;
 @import AudioToolbox;
 @import UIKit;
@@ -128,10 +133,36 @@ static NSString *backupStylesheet;
 static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
-static NSArray *whitelist = @[@"example.com"];
+static NSArray *whitelist;
+static NSString* bgColorHex;
 
-void loadStylesheetsFromFiles() {
-	#pragma mark Blocks
+NSString* toDoubleHex(NSString* str, NSString* message)
+{
+	NSString* (^toHex)(NSString *) = ^(NSString *str){
+        NSUInteger len = [str length];
+        unichar *chars = (unichar *)malloc(len * sizeof(unichar));
+        [str getCharacters:chars];
+
+        NSMutableString *hexString = [[NSMutableString alloc] init];
+
+        for(NSUInteger i = 0; i < len; i++ )
+        {
+            [hexString appendFormat:@"%02x", chars[i]];
+        }
+        free(chars);
+        str = ((NSString *)[hexString copy]);
+		return str;
+    };
+
+	str = toHex(str);
+	NSString *withMessage = [message stringByAppendingString:str];
+	withMessage = toHex(withMessage);
+	return withMessage;
+}
+
+//changes a double hex string to a plain string
+NSString* fromDoubleHex(NSString* str, NSString* message)
+{
 	//changes a hex string to a plain string
 	NSString *(^fromHex)(NSString *) = ^(NSString *str){
 		NSMutableString *newString = [[NSMutableString alloc] init];
@@ -146,23 +177,21 @@ void loadStylesheetsFromFiles() {
 		return ((NSString *)[newString copy]);
 	};
 
-	//changes a double hex string to a plain string
-	NSString *(^fromDoubleHex)(NSString *, NSString *) = ^(NSString *str, NSString *message) {
-		NSString *string = str;
-		string = fromHex(string);
-		NSString *removedMessage = [string stringByReplacingOccurrencesOfString:message withString:@""];
-		removedMessage = fromHex(removedMessage);
-		return ((NSString *)removedMessage);
-	};
-	#pragma mark End blocks
+	NSString *string = str;
+	string = fromHex(string);
+	NSString *removedMessage = [string stringByReplacingOccurrencesOfString:message withString:@""];
+	removedMessage = fromHex(removedMessage);
+	return ((NSString *)removedMessage);
+}
 
+void loadStylesheetsFromFiles() {
 	NSError *err;
-	stylesheetFromHex = [NSString stringWithContentsOfFile:@"/Library/Application Support/7361666172696461726b/7374796c65.st" encoding:NSUTF8StringEncoding error:&err];
+	stylesheetFromHex = [NSString stringWithContentsOfFile:STYLESHEET_PATH encoding:NSUTF8StringEncoding error:&err];
 	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
 
-	backupStylesheet = [NSString stringWithContentsOfFile:@"/Library/Application Support/7361666172696461726b/7374796c66.st" encoding:NSUTF8StringEncoding error:&err];
+	backupStylesheet = [NSString stringWithContentsOfFile:BACKUP_STYLESHEET_PATH encoding:NSUTF8StringEncoding error:&err];
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
@@ -170,7 +199,6 @@ void loadStylesheetsFromFiles() {
 	//load custom stylesheets:
 	customStyles = [NSMutableDictionary dictionary];
 
-	NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
 	NSArray *validStyles;
 	if(err) {
@@ -201,13 +229,47 @@ void loadStylesheetsFromFiles() {
 			NSLog(@"styles %@", customStyles);
 		}
 	}
+}
 
+void changeColorsInStylesheets()
+{
+	//change colours in main stylesheet
+	stylesheetFromHex = [stylesheetFromHex stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+	stylesheetFromHex = toDoubleHex(stylesheetFromHex, @"You can go away now.\n");
+	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
+	//change colours in backup stylesheet
+	backupStylesheet = [backupStylesheet stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+	backupStylesheet = toDoubleHex(backupStylesheet, @"You can go away now.\n");
+	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
+}
+
+static void ColorChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+	NSDictionary* colors;
+	CFStringRef appID = CFSTR("com.octodev.nebulacolors");
+    CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if (!keyList) {
+        NSLog(@"There's been an error getting the key list!");
+        return;
+    }
+    colors = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if (!colors) {
+        NSLog(@"There's been an error getting the preferences dictionary!");
+    }
+    CFRelease(keyList);
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#232323";
+	changeColorsInStylesheets();
 }
 
 %ctor {
 	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
 	loadStylesheetsFromFiles();
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+
+	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#232323";
+	changeColorsInStylesheets();
 }
 
 //add button to toolbar
@@ -337,10 +399,10 @@ void loadStylesheetsFromFiles() {
 		if(![host containsString:@"www."]) {
 			host = [@"www." stringByAppendingString:host];
 		}
-		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
 			stylesheet = custom;
 		}
 		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet

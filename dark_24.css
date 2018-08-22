@@ -1,6 +1,6 @@
 /* Universal */
 * {
-    background: #232323 !important;
+    background: NEBULA_DARK !important;
     color: #ededed !important;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
@@ -25,11 +25,11 @@
  }
 
 .panel-body {
-  background-color: #232323 !important;
+  background-color: NEBULA_DARK !important;
 }
 
 body panel panel-body {
-  background-color: #232323;
+  background-color: NEBULA_DARK;
 }
 
 img {
