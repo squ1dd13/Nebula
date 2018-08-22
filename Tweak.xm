@@ -127,6 +127,7 @@ static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles;
+static NSArray* backupStylesheetSites = @[];
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
@@ -264,21 +265,6 @@ void loadStylesheetsFromFiles() {
 -(void)revertInjection;
 @end
 
-CGFloat whiteOf(UIView *viewForDrawing) {
-	CGSize viewSize = viewForDrawing.bounds.size;
-	UIGraphicsBeginImageContextWithOptions(viewSize, NO, 0.0);
-	[viewForDrawing drawViewHierarchyInRect:CGRectMake(0, 0, viewSize.width, viewSize.height) afterScreenUpdates:YES];
-	UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-
-	//calculate the average colour of that image to see if the injection worked
-	CGFloat white, alpha;
-	UIColor *averageColor = avgColor(image);
-	[averageColor getWhite:&white alpha:&alpha];
-
-	return white;
-}
-
 %hook TabDocument
 %property (nonatomic, assign) BOOL shouldInject;
 %property (nonatomic, copy) NSString *originalHead;
@@ -334,10 +320,8 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 %new
 -(void)goDark {
 	if(self.shouldInject) {
-		CGFloat white = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-		__block CGFloat newWhite;
+		NSString* stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
-		__block BOOL usingCustom = NO;
 		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
 		if(![host containsString:@"www."]) {
 			host = [@"www." stringByAppendingString:host];
@@ -345,27 +329,17 @@ CGFloat whiteOf(UIView *viewForDrawing) {
 		NSString *stylesPath = @"/Library/Application Support/7361666172696461726b/Themes";
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
-			usingCustom = YES;
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
-			stylesheetFromHex = custom;
+			stylesheet = custom;
+		}
+		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
+		{
+			stylesheet = backupStylesheet;
 		}
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheetFromHex]];
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
-			newWhite = whiteOf(((WKWebView *)[self valueForKey:@"webView"]));
-		}];
-
-		//the css has been injected into the head by this point but the webview hasn't changed to reflect these changes
-
-		if((newWhite >= white - 0.2) && !usingCustom) {
-			//did not make webpage darker - try second stylesheet
-			NSLog(@"Injecting again.");
-			NSString *newStyleTag = [NSString stringWithFormat:@"\n<style>%@</style>", backupStylesheet];
-			modifiedHead = [head stringByAppendingString:newStyleTag];
-
-			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
-		}
+		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
+		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
 	}
 }
 
