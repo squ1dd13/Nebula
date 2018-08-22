@@ -1,4 +1,5 @@
 #include "NBLRootListController.h"
+#include "NBLWhitelistController.h"
 
 @implementation NBLRootListController
 

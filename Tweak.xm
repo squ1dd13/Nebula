@@ -127,12 +127,13 @@ static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
 static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles;
-static NSArray* backupStylesheetSites = @[];
+static NSArray *backupStylesheetSites = @[];
+static NSArray *whitelist = @[@"example.com"];
 
 void loadStylesheetsFromFiles() {
 	#pragma mark Blocks
 	//changes a hex string to a plain string
-	NSString* (^fromHex)(NSString *) = ^(NSString *str){
+	NSString *(^fromHex)(NSString *) = ^(NSString *str){
 		NSMutableString *newString = [[NSMutableString alloc] init];
 		int i = 0;
 		while (i < [str length]) {
@@ -146,7 +147,7 @@ void loadStylesheetsFromFiles() {
 	};
 
 	//changes a double hex string to a plain string
-	NSString* (^fromDoubleHex)(NSString *, NSString *) = ^(NSString *str, NSString *message) {
+	NSString *(^fromDoubleHex)(NSString *, NSString *) = ^(NSString *str, NSString *message) {
 		NSString *string = str;
 		string = fromHex(string);
 		NSString *removedMessage = [string stringByReplacingOccurrencesOfString:message withString:@""];
@@ -200,6 +201,7 @@ void loadStylesheetsFromFiles() {
 			NSLog(@"styles %@", customStyles);
 		}
 	}
+
 
 }
 
@@ -280,9 +282,18 @@ void loadStylesheetsFromFiles() {
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
 
+	BOOL whitelisted = NO;
+	if(whitelist && [whitelist containsObject:[[((WKWebView *)[self valueForKey:@"webView"]) URL] host]] && !darkMode) {
+		NSLog(@"Site is whitelisted.");
+		self.shouldInject = YES;
+		[self goDark];
+		whitelisted = YES;
+		self.shouldInject = NO;
+	}
+
 	if(darkMode) {
 		[self goDark];
-	} else {
+	} else if(!whitelisted) {
 		self.shouldInject = NO;
 		[self revertInjection];
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
@@ -320,7 +331,7 @@ void loadStylesheetsFromFiles() {
 %new
 -(void)goDark {
 	if(self.shouldInject) {
-		NSString* stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
+		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
 		if(![host containsString:@"www."]) {
