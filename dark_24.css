@@ -1,7 +1,8 @@
+/* Universal */
 * {
-  color: #c3c3c3 !important;
-  background: #303030 !important;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
+    background: #232323 !important;
+    color: #ededed !important;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
 
 :link, :link * {color: #55C8FF !important}
@@ -24,17 +25,95 @@
  }
 
 .panel-body {
-  background-color: #303030 !important;
+  background-color: #232323 !important;
 }
 
 body panel panel-body {
-  background-color: #303030;
+  background-color: #232323;
 }
 
 img {
     position:relative;
-}
-
-img > *, img~* * {
     background:#fff0!important;
 }
+
+img *, img~* *, img~* {
+    background:#fff0!important;
+}
+
+code, pre, code *, pre *, textarea {
+    background: #1c1c1c !important;
+    background-color: rgb(28,28,28) !important;
+    text-shadow: none!important;
+}
+/* End Universal */
+
+/* Google */
+.mnr-c *:not(.kp-header):not(.CNf3nf):not(.DKfgue), .xICLNb *, .card *, .dRYYxd, .gBCQ5d, .gBCQ5d *, .A7Yvie *, .UUbT9 ul * {
+    background:#fff0 !important;
+}
+
+.SSH64d{
+    background:rgba(0, 0, 0, 0.5)!important;
+}
+
+.mnr-c, .xICLNb, .card, .card ul, .UUbT9 ul, .A7Yvie {
+    background:#1c1c1c !important;
+}
+
+.qzEoUe {
+    color:#12c14a!important;
+}
+
+.Tg7LZd {
+    background:#3b78e7!important;
+}
+
+.kp-header {
+    background:#68752F!important;
+}
+
+.HK0d3e {
+    background: url(/images/nav_logo289_hr.webp) no-repeat!important;
+    background-position: 0 -374px!important;
+    background-size: 167px!important;
+}
+
+.Is2Q0d {
+    background: url(/images/nav_logo289_hr.webp) no-repeat!important;
+    background-position: 0 -374px!important;
+    background-size: 167px!important;
+}
+/* End Google */
+
+/* StackOverflow */
+.str, .tag, .lit {
+    color:#d84c4c!important;
+}
+
+.kwd, .dec {
+    color:#26c9e4!important;
+}
+
+.atv, .typ {
+    color:#0fbd9e!important;
+}
+
+.atn {
+    color:#E64320!important;
+}
+
+.current {
+    background:#fff0 !important;
+}
+
+.nav li.current a {
+    background:#e47a25!important;
+    color:white!important;
+    text-shadow:none!important;
+}
+
+.com {
+    color:#858c93!important;
+}
+/* End StackOverflow */
