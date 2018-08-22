@@ -2,5 +2,3 @@
 obj/
 packages/
 .DS_Store
-Makefile
-control

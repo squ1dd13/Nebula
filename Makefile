@@ -7,6 +7,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = Nebula
 Nebula_FILES = Tweak.xm
 Nebula_CFLAGS = -fobjc-arc
+Nebula_LIBRARIES = colorpicker
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
