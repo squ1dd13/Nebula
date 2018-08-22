@@ -77,10 +77,6 @@ UIColor *avgColor(UIImage *image) {
     return color;
 }
 
-NSString *replaceStr(NSString *mainString, NSString *toReplace, NSString *with) {
-    return [mainString stringByReplacingOccurrencesOfString:toReplace withString:with];
-}
-
 NSString *stringBetween(NSString *main, NSString *first, NSString *last) {
 	NSString *string = main;
 	NSString *result = nil;
@@ -135,30 +131,6 @@ static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
 static NSArray *whitelist;
 static NSString* bgColorHex;
-
-NSString* toDoubleHex(NSString* str, NSString* message)
-{
-	NSString* (^toHex)(NSString *) = ^(NSString *str){
-        NSUInteger len = [str length];
-        unichar *chars = (unichar *)malloc(len * sizeof(unichar));
-        [str getCharacters:chars];
-
-        NSMutableString *hexString = [[NSMutableString alloc] init];
-
-        for(NSUInteger i = 0; i < len; i++ )
-        {
-            [hexString appendFormat:@"%02x", chars[i]];
-        }
-        free(chars);
-        str = ((NSString *)[hexString copy]);
-		return str;
-    };
-
-	str = toHex(str);
-	NSString *withMessage = [message stringByAppendingString:str];
-	withMessage = toHex(withMessage);
-	return withMessage;
-}
 
 //changes a double hex string to a plain string
 NSString* fromDoubleHex(NSString* str, NSString* message)
@@ -235,13 +207,9 @@ void changeColorsInStylesheets()
 {
 	//change colours in main stylesheet
 	stylesheetFromHex = [stylesheetFromHex stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
-	stylesheetFromHex = toDoubleHex(stylesheetFromHex, @"You can go away now.\n");
-	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
 	//change colours in backup stylesheet
 	backupStylesheet = [backupStylesheet stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
-	backupStylesheet = toDoubleHex(backupStylesheet, @"You can go away now.\n");
-	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 }
 
 static void ColorChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
