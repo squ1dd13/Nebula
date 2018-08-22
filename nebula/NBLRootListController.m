@@ -24,7 +24,7 @@
     self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
     if (self) {
 
-        CGRect labelFrame = CGRectMake(0, -15, kWidth, 120);
+        CGRect labelFrame = CGRectMake(0, -15, kWidth, 70);
 
         label = [[UILabel alloc] initWithFrame:labelFrame];
 
@@ -47,8 +47,7 @@
     return self;
 }
 - (CGFloat)preferredHeightForWidth:(CGFloat)arg1 {
-    CGFloat prefHeight = 100.0;
-    return prefHeight;
+    return 70.0f;
 }
 @end
 
@@ -120,10 +119,15 @@
 -(void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
 	self.navigationController.navigationController.navigationBar.tintColor = [UIColor whiteColor];
-	self.navigationController.navigationController.navigationBar.barTintColor = [UIColor colorWithRed:(35/255.0) green:(35/255.0) blue:(35/255.0) alpha:1.0];
+	[self.navigationController.navigationController.navigationBar setValue:@YES forKeyPath:@"_barBackgroundView.hidden"];
+	[[[self.navigationController.navigationController.navigationBar valueForKey:@"_titleView"] valueForKey:@"_label"] setValue:@YES forKey:@"_textColorFollowsTintColor"];
+
+	self.navigationController.navigationController.navigationBar.barTintColor = [UIColor blackColor];
 	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
 
 	[[UITableView appearanceWhenContainedInInstancesOfClasses:@[self.class]] setBackgroundColor:[UIColor colorWithRed:(35/255.0) green:(35/255.0) blue:(35/255.0) alpha:1.0]];
+	[[UITableView appearanceWhenContainedInInstancesOfClasses:@[self.class]] setSeparatorColor:[UIColor clearColor]];
+
 	[UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor blackColor];
 	[[NSClassFromString(@"PSTableCell") appearanceWhenContainedInInstancesOfClasses:@[self.class]] setBackgroundColor:[UIColor colorWithRed:(35/255.0) green:(35/255.0) blue:(35/255.0) alpha:1.0]];
 }
