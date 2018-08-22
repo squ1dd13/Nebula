@@ -1,7 +1,7 @@
 /* Universal */
 * {
     background: NEBULA_DARK !important;
-    color: #ededed !important;
+    color: NEBULA_TEXT !important;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
 
@@ -42,8 +42,8 @@ img *, img~* *, img~* {
 }
 
 code, pre, code *, pre *, textarea {
-    background: #1c1c1c !important;
-    background-color: rgb(28,28,28) !important;
+    background: NEBULA_DARKER !important;
+    background-color: NEBULA_DARKER !important;
     text-shadow: none!important;
 }
 /* End Universal */
@@ -58,7 +58,7 @@ code, pre, code *, pre *, textarea {
 }
 
 .mnr-c, .xICLNb, .card, .card ul, .UUbT9 ul, .A7Yvie {
-    background:#1c1c1c !important;
+    background:NEBULA_DARKER !important;
 }
 
 .qzEoUe {
@@ -109,7 +109,7 @@ code, pre, code *, pre *, textarea {
 
 .nav li.current a {
     background:#e47a25!important;
-    color:white!important;
+    color:NEBULA_TEXT!important;
     text-shadow:none!important;
 }
 

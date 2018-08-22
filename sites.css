@@ -1,5 +1,5 @@
 html, body, div, span, ul, li, table, tr, td,nav, h1, h2, h3, h4, h5, h6, p, header, section, code, button, font, dt, dd, dl, article {
-  				color: white !important;
+  				color: NEBULA_TEXT !important;
   				border-color: darkgrey !important;
   				background: NEBULA_DARK !important;
   				background-color: NEBULA_DARK !important;
@@ -7,7 +7,7 @@ html, body, div, span, ul, li, table, tr, td,nav, h1, h2, h3, h4, h5, h6, p, hea
 
 			code, pre {
   				color: rgb(80, 200, 70) !important;
-  				background-color: rgb(28,28,28) !important;
+  				background-color: NEBULA_DARKER !important;
 			}
 
 			a {

@@ -119,6 +119,17 @@ UIImage *resizeImage(UIImage *image, CGSize size) {
 	return newImage;
 }
 
+NSString* makeHexColorDarker(NSString* hexColor, CGFloat percent)
+{
+	int red, green, blue;
+    sscanf([hexColor UTF8String], "#%02X%02X%02X", &red, &green, &blue);
+	red *= (1 - (percent / 100));
+	green *= (1 - (percent / 100));
+	blue *= (1 - (percent / 100));
+	hexColor = [NSString stringWithFormat:@"#%02x%02x%02x", red, green, blue];
+	return hexColor;
+}
+
 @interface BrowserToolbar : UIToolbar
 @property (nonatomic, assign) UIButton *darkButton;
 @end
@@ -131,6 +142,8 @@ static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
 static NSArray *whitelist;
 static NSString* bgColorHex;
+static NSString* darkerColorHex;
+static NSString* textColorHex;
 
 //changes a double hex string to a plain string
 NSString* fromDoubleHex(NSString* str, NSString* message)
@@ -206,10 +219,14 @@ void loadStylesheetsFromFiles() {
 void changeColorsInStylesheets()
 {
 	//change colours in main stylesheet
+	stylesheetFromHex = [stylesheetFromHex stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
 	stylesheetFromHex = [stylesheetFromHex stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+	stylesheetFromHex = [stylesheetFromHex stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
 
 	//change colours in backup stylesheet
+	backupStylesheet = [backupStylesheet stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
 	backupStylesheet = [backupStylesheet stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+	backupStylesheet = [backupStylesheet stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
 }
 
 static void ColorChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
@@ -226,7 +243,9 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
         NSLog(@"There's been an error getting the preferences dictionary!");
     }
     CFRelease(keyList);
-	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#232323";
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
+	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
+	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	changeColorsInStylesheets();
 }
 
@@ -236,7 +255,9 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
-	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#232323";
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
+	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
+	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	changeColorsInStylesheets();
 }
 
@@ -370,7 +391,9 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if([customStyles valueForKey:host]) {
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
 			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
 			stylesheet = custom;
 		}
 		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
