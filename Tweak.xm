@@ -545,6 +545,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 @interface WebFrame : NSObject
 -(NSURL*)webui_URL;
 -(id)_stringByEvaluatingJavaScriptFromString:(id)arg1;
+-(UIView*)frameView;
 @end
 
 @interface UIWebView (Nebula)
@@ -555,17 +556,24 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %hook UIWebView
 %property (nonatomic, assign) BOOL hasInjected;
 
+-(void)webView:(id)arg1 didCommitLoadForFrame:(id)arg2
+{
+	%orig;
+	if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+		[(WebFrame*)arg2 frameView].hidden = YES;
+	}
+}
+
 -(void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2
 {
 	%orig;
 	self.hasInjected = NO;
 	NSLog(@"Navigation ended.");
 
-	BOOL whitelisted = NO;
 	if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
 		NSLog(@"Site is whitelisted.");
 		[self goDarkForFrame:arg2];
-		whitelisted = YES;
+		[(WebFrame*)arg2 frameView].hidden = NO;
 	}
 }
 
