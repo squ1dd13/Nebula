@@ -1,4 +1,5 @@
-#define SETTINGS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebulacolors.plist"
+#define COLORS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebulacolors.plist"
+#define SETTINGS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula.plist"
 #define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
@@ -144,6 +145,7 @@ static NSArray *whitelist;
 static NSString* bgColorHex;
 static NSString* darkerColorHex;
 static NSString* textColorHex;
+static NSDictionary* preferences;
 
 //changes a double hex string to a plain string
 NSString* fromDoubleHex(NSString* str, NSString* message)
@@ -216,6 +218,11 @@ void loadStylesheetsFromFiles() {
 	}
 }
 
+void loadWhitelist()
+{
+	whitelist = preferences[@"whitelistArray"] ? preferences[@"whitelistArray"] : [NSArray new];
+}
+
 void changeColorsInStylesheets()
 {
 	//change colours in main stylesheet
@@ -249,15 +256,33 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	changeColorsInStylesheets();
 }
 
+static void PreferencesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+    preferences = nil;
+    CFStringRef appID = CFSTR("com.octodev.nebula");
+    CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if (!keyList) {
+        NSLog(@"There's been an error getting the key list!");
+        return;
+    }
+    preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if (!preferences) {
+        NSLog(@"There's been an error getting the preferences dictionary!");
+    }
+    CFRelease(keyList);
+}
+
 %ctor {
 	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
-	loadStylesheetsFromFiles();
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
-	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
+	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
+	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
 	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
 	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
+	loadStylesheetsFromFiles();
+	loadWhitelist();
 	changeColorsInStylesheets();
 }
 
@@ -372,14 +397,16 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 		self.shouldInject = NO;
 	}
 
-	if(darkMode) {
-		[self goDark];
-	} else if(!whitelisted) {
-		self.shouldInject = NO;
-		[self revertInjection];
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+	if (!whitelisted)
+	{
+		if(darkMode) {
+			[self goDark];
+		} else {
+			self.shouldInject = NO;
+			[self revertInjection];
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+		}
 	}
-
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"DarkWebToggle" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"DarkWebToggle" object:nil];

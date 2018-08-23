@@ -1,3 +1,4 @@
+#include <notify.h>
 #include "NBLWhitelistController.h"
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width
@@ -52,6 +53,7 @@
 -(void)setWhitelistArray
 {
 	[[NSUserDefaults standardUserDefaults] setObject:[whitelistArray copy] forKey:@"whitelistArray" inDomain:@"com.octodev.nebula"];
+	notify_post([@"com.octodev.nebula-prefschanged" UTF8String]);
 }
 
 -(void)didMoveToWindow
