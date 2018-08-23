@@ -360,12 +360,11 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %end
 
 @interface TabDocument : NSObject
-@property (nonatomic, assign) BOOL shouldInject;
+@property (nonatomic, assign) BOOL hasInjected;
 @property (nonatomic, copy) NSString *originalHead;
 @property (nonatomic, copy) NSString *originalBody;
 @property (nonatomic, copy) NSString *lastHost;
 @property (nonatomic, copy) NSString *lastFullURL;
--(void)inject;
 -(void)goDark;
 -(void)reload;
 -(void)runJavaScript:(NSString *)js completion:(id)comp;
@@ -374,7 +373,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 @end
 
 %hook TabDocument
-%property (nonatomic, assign) BOOL shouldInject;
+%property (nonatomic, assign) BOOL hasInjected;
 %property (nonatomic, copy) NSString *originalHead;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
@@ -382,6 +381,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
 	%orig;
+	self.hasInjected = NO;
 	NSLog(@"Navigation ended.");
 
 	//back up the original values
@@ -391,10 +391,8 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	BOOL whitelisted = NO;
 	if(whitelist && [whitelist containsObject:[[((WKWebView *)[self valueForKey:@"webView"]) URL] host]] && !darkMode) {
 		NSLog(@"Site is whitelisted.");
-		self.shouldInject = YES;
 		[self goDark];
 		whitelisted = YES;
-		self.shouldInject = NO;
 	}
 
 	if (!whitelisted)
@@ -402,7 +400,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 		if(darkMode) {
 			[self goDark];
 		} else {
-			self.shouldInject = NO;
 			[self revertInjection];
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
 		}
@@ -414,30 +411,17 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 %new
 -(void)toggleInjection:(NSNotification *)notification {
-	[[NSNotificationCenter defaultCenter] postNotificationName:(self.shouldInject) ? @"DarkWebDark" : @"DarkWebLight" object:nil userInfo:nil];
-	self.shouldInject = !self.shouldInject; //invert it, because we have now switched
+	[[NSNotificationCenter defaultCenter] postNotificationName:(darkMode) ? @"DarkWebDark" : @"DarkWebLight" object:nil userInfo:nil];
 
-	self.shouldInject = [[notification object] boolValue];
 	darkMode = [[notification object] boolValue];
 
-	[[notification object] boolValue] ? [self inject] : [self revertInjection];
+	[[notification object] boolValue] ? [self goDark] : [self revertInjection];
 	[%c(UIKBRenderConfig) updateAllConfigs];
-}
-
--(void)reload {
-	%orig;
-	self.shouldInject = YES;
-	[self inject];
-}
-
-%new
--(void)inject {
-	[self goDark];
 }
 
 %new
 -(void)goDark {
-	if(self.shouldInject) {
+	if(!self.hasInjected) {
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
@@ -460,11 +444,13 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
+		self.hasInjected = YES;
 	}
 }
 
 %new
 -(void)revertInjection {
+	self.hasInjected = NO;
 	NSLog(@"Reverting changes");
 	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
 }
