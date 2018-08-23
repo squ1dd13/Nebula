@@ -3,6 +3,7 @@
 #define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
+#define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 
 #include "libcolorpicker.h"
 
@@ -135,6 +136,7 @@ NSString* makeHexColorDarker(NSString* hexColor, CGFloat percent)
 
 @interface BrowserToolbar : UIToolbar
 @property (nonatomic, assign) UIButton *darkButton;
+-(void)setInteractionTintColor:(id)arg1;
 @end
 
 static UIBarButtonItem *nightModeButton = nil;
@@ -148,6 +150,11 @@ static NSString* bgColorHex;
 static NSString* darkerColorHex;
 static NSString* textColorHex;
 static NSDictionary* preferences;
+
+static BOOL PreferencesBool(NSString* key, BOOL fallback)
+{
+	return preferences[key] ? [preferences[key] boolValue] : fallback;
+}
 
 //changes a double hex string to a plain string
 NSString* fromDoubleHex(NSString* str, NSString* message)
@@ -312,6 +319,15 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %hook BrowserToolbar
 %property (nonatomic, assign) UIButton *darkButton;
 
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode)
+	{
+		[self setInteractionTintColor:[UIColor whiteColor]];
+	}
+}
+
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
 	NSLog(@"Setting toolbar items.");
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
@@ -323,8 +339,8 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	[self.darkButton setSelected:darkMode];
 
 	//cheers pinpal
-	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateNormal];
-	[self.darkButton setImage:[UIImage changeImage:resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) toColor:self.tintColor] forState:UIControlStateSelected];
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected];
 
 	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
 
@@ -614,3 +630,155 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	return 10;
 }
 %end
+
+/* Safari darkmode */
+@interface _UIBackdropView : UIView
+-(void)transitionToPrivateStyle:(NSInteger)arg1;
+-(NSInteger)style;
+@end
+
+%hook _UIBackdropView
+-(void)didMoveToWindow
+{
+	%orig;
+	if ([[self window] isMemberOfClass:%c(MobileSafariWindow)] && [self style] != 2030 && safariDarkmode)
+	{
+		[self transitionToPrivateStyle:1];
+	}
+}
+
+-(void)setStyle:(NSInteger)arg1
+{
+	%orig;
+	if ([[self window] isMemberOfClass:%c(MobileSafariWindow)] && [self style] != 2030 && safariDarkmode)
+	{
+		[self transitionToPrivateStyle:1];
+	}
+}
+%end
+
+%hook BookmarkFavoritesCollectionView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (safariDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+@interface BookmarkFavoriteView : UIView
+{
+	UILabel* _titleLabel;
+}
+@end
+
+%hook BookmarkFavoriteView
+-(void)didMoveToWindow
+{
+	%orig;
+	if (safariDarkmode)
+	{
+		UILabel* lbl = MSHookIvar<UILabel*>(self, "_titleLabel");
+		lbl.textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
+
+@interface CatalogViewController : UIViewController
+@end
+
+%hook CatalogViewController
+-(void)viewDidLayoutSubviews
+{
+	%orig;
+	if (safariDarkmode)
+	{
+		self.view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+@interface MobileSafariWindow : UIWindow
+@end
+
+%hook MobileSafariWindow
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode)
+	{
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+@interface CompletionListTableViewController : UIViewController
+@end
+
+%hook CompletionListTableViewController
+-(void)viewDidLayoutSubviews
+{
+	%orig;
+	if (safariDarkmode)
+	{
+		self.view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook UITableViewCell
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	{
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+@interface UITableViewLabel : UILabel
+@end
+
+%hook UITableViewLabel
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
+
+@interface _UITableViewHeaderFooterViewLabel : UILabel
+@end
+
+%hook _UITableViewHeaderFooterViewLabel
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
+
+//TODO: currently not working
+@interface TLKVibrantLabel : UILabel
+@end
+
+%hook TLKVibrantLabel
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
+/* End safari darkmode */
