@@ -7,6 +7,7 @@ Nebula_FILES = NBLRootListController.m NBLWhitelistController.m
 Nebula_INSTALL_PATH = /Library/PreferenceBundles
 Nebula_FRAMEWORKS = UIKit
 Nebula_PRIVATE_FRAMEWORKS = Preferences
+Nebula_CFLAGS = -fobjc-arc
 Nebula_LIBRARIES = colorpicker
 
 include $(THEOS_MAKE_PATH)/bundle.mk
