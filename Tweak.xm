@@ -359,7 +359,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 %end
 
-@interface TabDocument : NSObject
+@interface WKWebView (Nebula)
 @property (nonatomic, assign) BOOL hasInjected;
 @property (nonatomic, copy) NSString *originalHead;
 @property (nonatomic, copy) NSString *originalBody;
@@ -372,14 +372,15 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)revertInjection;
 @end
 
-%hook TabDocument
+%hook WKWebView
 %property (nonatomic, assign) BOOL hasInjected;
 %property (nonatomic, copy) NSString *originalHead;
 %property (nonatomic, copy) NSString *originalBody;
 %property (nonatomic, copy) NSString *lastHost;
 %property (nonatomic, copy) NSString *lastFullURL;
 
--(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+
+-(void)_didFinishLoadForMainFrame {
 	%orig;
 	self.hasInjected = NO;
 	NSLog(@"Navigation ended.");
@@ -389,7 +390,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
 
 	BOOL whitelisted = NO;
-	if(whitelist && [whitelist containsObject:[[((WKWebView *)[self valueForKey:@"webView"]) URL] host]] && !darkMode) {
+	if(whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode) {
 		NSLog(@"Site is whitelisted.");
 		[self goDark];
 		whitelisted = YES;
@@ -424,7 +425,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	if(!self.hasInjected) {
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
-		NSString *host = [[((WKWebView *)[self valueForKey:@"webView"]) URL] host];
+		NSString *host = [[self URL] host];
 		if(![host containsString:@"www."]) {
 			host = [@"www." stringByAppendingString:host];
 		}
@@ -459,7 +460,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)runJavaScript:(NSString *)js completion:(void (^)())comp {
 	__block BOOL finished = NO;
 
-	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+	[self evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
 		finished = YES;
 		[comp invoke];
@@ -474,7 +475,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	__block NSString *resultString = nil;
 	__block BOOL finished = NO;
 
-	[((WKWebView *)[self valueForKey:@"webView"]) evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
+	[self evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
 		if (error == nil) {
 			if (result != nil) {
 				resultString = [NSString stringWithFormat:@"%@", result];
@@ -493,11 +494,9 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %end
 
 @interface BrowserController : NSObject
-@property (nonatomic, copy) NSArray *whitelist;
 @end
 
 %hook BrowserController
-%property (nonatomic, copy) NSArray *whitelist;
 
 -(void)setWebView:(id)web {
 	%orig;
