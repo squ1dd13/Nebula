@@ -57,13 +57,14 @@
 @implementation PSTableCell (Nebula)
 
 + (void)load {
+	//if we were to swizzle twice, after the second swizzle, our changes would be reversed
+	//we can override +load because very few classes implement this method (and PSTableCell is no exception)
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
 		Class class = [self class];
 
 		//get the original selector and the new selector we add (remember this is a category)
 		//in categories you can add selectors
-
 		SEL originalSelector = @selector(layoutSubviews);
 		SEL swizzledSelector = @selector(nebulaLayoutSubviews);
 
