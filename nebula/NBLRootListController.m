@@ -109,4 +109,9 @@
 	return _specifiers;
 }
 
+-(void)viewWillAppear:(BOOL)a {
+	[super viewWillAppear:a];
+	[UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
+}
+
 @end
