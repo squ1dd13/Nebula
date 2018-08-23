@@ -410,8 +410,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"DarkWebToggle" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"DarkWebToggle" object:nil];
-
-	[self inject];
 }
 
 %new
