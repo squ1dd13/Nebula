@@ -261,6 +261,26 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	changeColorsInStylesheets();
 }
 
+//dark keyboard
+@interface UIKBRenderConfig : NSObject
+-(void)setLightKeyboard:(BOOL)light;
++(void)updateAllConfigs;
++(id)darkConfig;
++(id)defaultConfig;
++(id)defaultEmojiConfig;
++(id)lowQualityDarkConfig;
+@end
+%hook UIKBRenderConfig
+
+%new
++(void)updateAllConfigs {
+	[[self darkConfig] setLightKeyboard:!darkMode];
+	[[self defaultConfig] setLightKeyboard:!darkMode];
+	[[self defaultEmojiConfig] setLightKeyboard:!darkMode];
+	[[self lowQualityDarkConfig] setLightKeyboard:!darkMode];
+}
+%end
+
 //add button to toolbar
 %hook BrowserToolbar
 %property (nonatomic, assign) UIButton *darkButton;
@@ -376,6 +396,7 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	darkMode = [[notification object] boolValue];
 
 	[[notification object] boolValue] ? [self inject] : [self revertInjection];
+	[%c(UIKBRenderConfig) updateAllConfigs];
 }
 
 -(void)reload {
@@ -505,15 +526,9 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 
 %end
 
-//dark keyboard
-%hook UIKBRenderConfig
-- (void)setLightKeyboard:(BOOL)light {
-	%orig(NO);
-}
-%end
-
 %hook UIDevice
-- (long long)_keyboardGraphicsQuality {
+
+-(long long)_keyboardGraphicsQuality {
 	return 10;
 }
 %end
