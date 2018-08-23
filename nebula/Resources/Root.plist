@@ -93,6 +93,8 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string></string>
+			<key>footerText</key>
+			<string>A list of sites to always load into dark mode</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -100,7 +102,7 @@
 			<key>cellClass</key>
 			<string>SNActionCell</string>
 			<key>label</key>
-			<string>Whitelist</string>
+			<string>Enabled Sites</string>
 			<key>detail</key>
 			<string>NBLWhitelistController</string>
 		</dict>
