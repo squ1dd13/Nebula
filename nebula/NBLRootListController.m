@@ -61,17 +61,30 @@
 	dispatch_once(&onceToken, ^{
 		Class class = [self class];
 
+		//get the original selector and the new selector we add (remember this is a category)
+		//in categories you can add selectors
+
 		SEL originalSelector = @selector(layoutSubviews);
 		SEL swizzledSelector = @selector(nebulaLayoutSubviews);
 
+		//we are swizzling layoutSubviews, which is an instance method, so we need the instance methods
+		//of course, our new method is also an instance method
 		Method originalMethod = class_getInstanceMethod(class, originalSelector);
 		Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
 
+		//add the method. At this stage, there is no exchange of implementations.
 		BOOL didAddMethod =
 		class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
+
+		//if it managed to add the method, we can simply replace layoutSubviews with our custom one
+		//this means that any calls to layoutSubviews will be redirected to nebulaLayoutSubviews
 		if (didAddMethod) {
 			class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
 		} else {
+			//if, for whatever reason, the method wasn't added, we can just swap the implementations round
+			//this basically means that the code from nebulaLayoutSubviews will be put inside layoutSubviews.
+			//this has the same effect as swapping around the methods, but is a different approach
+			//rather than redirecting, we simply run different code
 			method_exchangeImplementations(originalMethod, swizzledMethod);
 		}
 	});
