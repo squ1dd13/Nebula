@@ -266,6 +266,7 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 %property (nonatomic, assign) UIButton *darkButton;
 
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
+	NSLog(@"Setting toolbar items.");
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
 
@@ -281,9 +282,18 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
 
 	NSMutableArray *buttons = [items mutableCopy];
-	UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-	space.width = 30;
-	[buttons addObject:space];
+	if(!(UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]))) {
+		UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+		space.width = 30;
+		[buttons addObject:space];
+	} else {
+		for(UIBarButtonItem *item in buttons) {
+			if(item.width > 10) {
+				item.width = 5;
+			}
+		}
+	}
+
 	[buttons addObject:nightModeButton];
 	%orig([buttons copy], anim);
 }
