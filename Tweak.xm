@@ -4,6 +4,8 @@
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
 
+#include "libcolorpicker.h"
+
 @import WebKit;
 @import AudioToolbox;
 @import UIKit;
@@ -362,9 +364,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 @interface WKWebView (Nebula)
 @property (nonatomic, assign) BOOL hasInjected;
 @property (nonatomic, copy) NSString *originalHead;
-@property (nonatomic, copy) NSString *originalBody;
-@property (nonatomic, copy) NSString *lastHost;
-@property (nonatomic, copy) NSString *lastFullURL;
 -(void)goDark;
 -(void)reload;
 -(void)runJavaScript:(NSString *)js completion:(id)comp;
@@ -375,10 +374,16 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %hook WKWebView
 %property (nonatomic, assign) BOOL hasInjected;
 %property (nonatomic, copy) NSString *originalHead;
-%property (nonatomic, copy) NSString *originalBody;
-%property (nonatomic, copy) NSString *lastHost;
-%property (nonatomic, copy) NSString *lastFullURL;
 
+-(void)_didCommitLoadForMainFrame
+{
+	%orig;
+	if (darkMode || (whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode))
+	{
+		self.alpha = 0;
+		[self superview].backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
 
 -(void)_didFinishLoadForMainFrame {
 	%orig;
@@ -387,7 +392,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 	//back up the original values
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-	self.originalBody = [self getJavaScriptOutput:@"document.getElementsByTagName(\"body\")[0].innerHTML"];
 
 	BOOL whitelisted = NO;
 	if(whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode) {
@@ -444,7 +448,9 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:nil];
+		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
+			self.alpha = 1;
+		}];
 		self.hasInjected = YES;
 	}
 }
@@ -534,6 +540,64 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	}
 }
 
+%end
+
+@interface WebFrame : NSObject
+-(NSURL*)webui_URL;
+-(id)_stringByEvaluatingJavaScriptFromString:(id)arg1;
+@end
+
+@interface UIWebView (Nebula)
+@property (nonatomic, assign) BOOL hasInjected;
+-(void)goDarkForFrame:(id)arg1;
+@end
+
+%hook UIWebView
+%property (nonatomic, assign) BOOL hasInjected;
+
+-(void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2
+{
+	%orig;
+	self.hasInjected = NO;
+	NSLog(@"Navigation ended.");
+
+	BOOL whitelisted = NO;
+	if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+		NSLog(@"Site is whitelisted.");
+		[self goDarkForFrame:arg2];
+		whitelisted = YES;
+	}
+}
+
+%new
+-(void)goDarkForFrame:(id)arg1 {
+	if(!self.hasInjected) {
+		WebFrame* webFrame = (WebFrame*)arg1;
+		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
+
+		NSString *host = [[webFrame webui_URL] host];
+		if(![host containsString:@"www."]) {
+			host = [@"www." stringByAppendingString:host];
+		}
+		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
+		if([customStyles valueForKey:host]) {
+			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
+			stylesheet = custom;
+		}
+		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
+		{
+			stylesheet = backupStylesheet;
+		}
+
+		NSString *head = [webFrame _stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
+		[webFrame _stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
+		self.hasInjected = YES;
+	}
+}
 %end
 
 %hook UIDevice
