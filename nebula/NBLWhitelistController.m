@@ -4,7 +4,7 @@
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {
-		_specifiers = [[self loadSpecifiersFromPlistName:@"Whitelist" target:self] retain];
+		_specifiers = [self loadSpecifiersFromPlistName:@"Whitelist" target:self];
 	}
 
 	return _specifiers;
