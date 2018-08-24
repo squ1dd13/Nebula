@@ -39,7 +39,7 @@
 
 -(void)reloadTable
 {
-	NSString *keyPath = [[self objectForKey:@"superview"] respondsToSelector:@selector(reloadData)] ? @"superview" : @"superview.superview";
+	NSString *keyPath = [[self valueForKey:@"superview"] respondsToSelector:@selector(reloadData)] ? @"superview" : @"superview.superview";
 	[(UITableView*)[self valueForKeyPath:keyPath] reloadData];
 	[whitelistTable reloadData];
 	whitelistTable.frame = CGRectMake(0, 0, kWidth, whitelistArray.count * 45);
