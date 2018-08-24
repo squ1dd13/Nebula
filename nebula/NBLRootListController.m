@@ -123,6 +123,23 @@
 
 -(void)viewWillAppear:(BOOL)a {
 	[super viewWillAppear:a];
+	id showCredits = ^{
+		UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Credits"
+														   message:@"Code by @squ1dd13 and @Muirey03. Graphic design by @TPinpal."
+												   	 preferredStyle:UIAlertControllerStyleAlert];
+
+		UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"Thanks!"
+													 style:UIAlertActionStyleDefault
+												    handler:^(UIAlertAction * action) {}];
+
+
+		[alert addAction:defaultAction];
+		[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
+	};
+	UIBarButtonItem *creditsButton = [[UIBarButtonItem alloc] initWithTitle:@"Credits" style:UIBarButtonItemStylePlain target:showCredits action:@selector(invoke)];
+	creditsButton.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
+	[self.navigationItem setRightBarButtonItem:creditsButton];
+
 	[UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 }
 
