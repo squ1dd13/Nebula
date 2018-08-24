@@ -205,7 +205,12 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %new
 -(void)nightMode:(UIButton *)button {
 	AudioServicesPlaySystemSound(1519);
-	button.selected = !button.selected;
+	//fade
+	[UIView transitionWithView:button
+				   duration:0.1
+				    options:UIViewAnimationOptionTransitionCrossDissolve
+				 animations:^{ button.selected = !button.selected; }
+				 completion:nil];
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
 }
 
