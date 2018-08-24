@@ -92,6 +92,13 @@
 }
 
 - (void)nebulaLayoutSubviews {
+	/*
+	This looks like it would cause an infinite loop. It doesn't! The code in this method will be run in layoutSubviews,
+	and the code from layoutSubviews will be run in this method (the code has been swapped one way or another, see above).
+	We are effectively inside layoutSubviews right now. Because nebulaLayoutSubviews contains the original code now,
+	calling it is like calling %orig. If we were to not call it, it would have the same possible consequences as forgetting
+	%orig (e.g. crashes).
+	*/
 	[self nebulaLayoutSubviews];
 	@try {
 	if([NSStringFromClass((Class)[self valueForKeyPath:@"superview.delegate.delegate.class"]) isEqualToString:@"NBLRootListController"]) {
