@@ -668,12 +668,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 }
 %end
 
-@interface BookmarkFavoriteView : UIView
-{
-	UILabel* _titleLabel;
-}
-@end
-
 %hook BookmarkFavoriteView
 -(void)didMoveToWindow
 {
@@ -686,22 +680,16 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 }
 %end
 
-@interface CatalogViewController : UIViewController
-@end
-
 %hook CatalogViewController
 -(void)viewDidLayoutSubviews
 {
 	%orig;
 	if (safariDarkmode)
 	{
-		self.view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIViewController *)self).view.backgroundColor = LCPParseColorString(bgColorHex, @"");
 	}
 }
 %end
-
-@interface MobileSafariWindow : UIWindow
-@end
 
 %hook MobileSafariWindow
 -(void)layoutSubviews
@@ -709,13 +697,10 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	%orig;
 	if (safariDarkmode)
 	{
-		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIView *)self).backgroundColor = LCPParseColorString(bgColorHex, @"");
 	}
 }
 %end
-
-@interface CompletionListTableViewController : UIViewController
-@end
 
 %hook CompletionListTableViewController
 -(void)viewDidLayoutSubviews
@@ -723,7 +708,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	%orig;
 	if (safariDarkmode)
 	{
-		self.view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIViewController *)self).view.backgroundColor = LCPParseColorString(bgColorHex, @"");
 	}
 }
 %end
@@ -739,30 +724,24 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 }
 %end
 
-@interface UITableViewLabel : UILabel
-@end
-
 %hook UITableViewLabel
 -(void)layoutSubviews
 {
 	%orig;
-	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	if (safariDarkmode && [[((UILabel *)self) window] isMemberOfClass:%c(MobileSafariWindow)])
 	{
-		self.textColor = LCPParseColorString(textColorHex, @"");
+		((UILabel *)self).textColor = LCPParseColorString(textColorHex, @"");
 	}
 }
 %end
-
-@interface _UITableViewHeaderFooterViewLabel : UILabel
-@end
 
 %hook _UITableViewHeaderFooterViewLabel
 -(void)layoutSubviews
 {
 	%orig;
-	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	if (safariDarkmode && [[((UILabel *)self) window] isMemberOfClass:%c(MobileSafariWindow)])
 	{
-		self.textColor = LCPParseColorString(textColorHex, @"");
+		((UILabel *)self).textColor = LCPParseColorString(textColorHex, @"");
 	}
 }
 %end
