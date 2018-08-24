@@ -100,21 +100,12 @@
 	%orig (e.g. crashes).
 	*/
 	[self nebulaLayoutSubviews];
-	@try {
-	if([NSStringFromClass((Class)[self valueForKeyPath:@"superview.delegate.delegate.class"]) isEqualToString:@"NBLRootListController"]) {
+	NSString *keyPath = [[self valueForKeyPath:@"superview.delegate"] respondsToSelector:NSSelectorFromString(@"delegate")] ? @"superview.delegate.delegate.class" : @"superview.delegate.class";
+	if([NSStringFromClass((Class)[self valueForKeyPath:keyPath]) isEqualToString:@"NBLRootListController"]) {
 		if(self.accessoryView) {
 			self.accessoryView.layer.borderWidth = 0;
 		}
 	}
-} @catch(NSException *e) {
-	if([NSStringFromClass((Class)[self valueForKeyPath:@"superview.delegate.class"]) isEqualToString:@"NBLRootListController"]) {
-		if(self.accessoryView) {
-			self.accessoryView.layer.borderWidth = 0;
-		}
-	}
-
-}
-
 }
 
 @end
