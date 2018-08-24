@@ -149,5 +149,6 @@ NSString* fromDoubleHex(NSString* str, NSString* message)
 -(NSInteger)style;
 @end
 
-@interface TLKVibrantLabel : UILabel
+@interface UITableViewCellSelectedBackground : UIView
+@property (nonatomic,retain) UIColor * selectionTintColor;
 @end

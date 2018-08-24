@@ -4,6 +4,7 @@
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
+#define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
 
 #include "libcolorpicker.h"
 #include "nebula.h"
@@ -467,12 +468,14 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
+#pragma mark App Darkmodes
+
 /* Safari darkmode */
 %hook _UIBackdropView
 -(void)didMoveToWindow
 {
 	%orig;
-	if ([[self window] isMemberOfClass:%c(MobileSafariWindow)] && [self style] != 2030 && safariDarkmode)
+	if (inSafari && [self style] != 2030 && safariDarkmode)
 	{
 		[self transitionToPrivateStyle:1];
 	}
@@ -481,7 +484,7 @@ Boy frame: *goes dark for girl frame*
 -(void)setStyle:(NSInteger)arg1
 {
 	%orig;
-	if ([[self window] isMemberOfClass:%c(MobileSafariWindow)] && [self style] != 2030 && safariDarkmode)
+	if (inSafari && [self style] != 2030 && safariDarkmode)
 	{
 		[self transitionToPrivateStyle:1];
 	}
@@ -533,13 +536,13 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
-%hook CompletionListTableViewController
--(void)viewDidLayoutSubviews
+%hook UITableView
+-(void)layoutSubviews
 {
 	%orig;
-	if (safariDarkmode)
+	if (safariDarkmode && inSafari)
 	{
-		((UIViewController *)self).view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
 	}
 }
 %end
@@ -548,45 +551,119 @@ Boy frame: *goes dark for girl frame*
 -(void)layoutSubviews
 {
 	%orig;
-	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	if (safariDarkmode && inSafari)
 	{
 		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		self.selectedBackgroundView.backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+		if ([self.selectedBackgroundView respondsToSelector:@selector(selectionTintColor)])
+		{
+			((UITableViewCellSelectedBackground*)self.selectedBackgroundView).selectionTintColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+		}
 	}
 }
 %end
 
-%hook UITableViewLabel
--(void)layoutSubviews
+%hook UILabel
+-(void)didMoveToWindow
 {
 	%orig;
-	if (safariDarkmode && [[((UILabel *)self) window] isMemberOfClass:%c(MobileSafariWindow)])
-	{
-		((UILabel *)self).textColor = LCPParseColorString(textColorHex, @"");
-	}
-}
-%end
-
-%hook _UITableViewHeaderFooterViewLabel
--(void)layoutSubviews
-{
-	%orig;
-	if (safariDarkmode && [[((UILabel *)self) window] isMemberOfClass:%c(MobileSafariWindow)])
-	{
-		((UILabel *)self).textColor = LCPParseColorString(textColorHex, @"");
-	}
-}
-%end
-
-//TODO: currently not working
-
-%hook TLKVibrantLabel
--(void)layoutSubviews
-{
-	%orig;
-	if (safariDarkmode && [[self window] isMemberOfClass:%c(MobileSafariWindow)])
+	if (safariDarkmode && inSafari)
 	{
 		self.textColor = LCPParseColorString(textColorHex, @"");
 	}
 }
+
+-(void)setTextColor:(id)arg1
+{
+	if (safariDarkmode && inSafari)
+	{
+		arg1 = LCPParseColorString(textColorHex, @"");
+	}
+	%orig;
+}
 %end
+
+%hook UINavigationBar
+-(void)layoutSubviews
+{
+    %orig;
+	if (safariDarkmode && inSafari)
+	{
+		[self setBarStyle:UIBarStyleBlack];
+	}
+}
+%end
+
+%hook UIToolbar
+-(void)didMoveToWindow
+{
+    %orig;
+	if (safariDarkmode && inSafari)
+	{
+		[self setBarStyle:UIBarStyleBlack];
+	}
+}
+
+-(void)setBarStyle:(NSInteger)arg1
+{
+	if (safariDarkmode && inSafari)
+	{
+		arg1 = UIBarStyleBlack;
+	}
+	%orig;
+}
+%end
+
+%hook UISearchBar
+-(void)didMoveToWindow
+{
+    %orig;
+	if (safariDarkmode && inSafari)
+	{
+		[self setBarStyle:UIBarStyleBlack];
+		((UITextField*)[self valueForKey:@"searchField"]).textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+
+-(void)setBarStyle:(NSInteger)arg1
+{
+	if (safariDarkmode && inSafari)
+	{
+		arg1 = UIBarStyleBlack;
+	}
+	%orig;
+}
+%end
+
+%hook _UITableViewHeaderFooterViewBackground
+-(void)didMoveToWindow
+{
+	%orig;
+	if (safariDarkmode && inSafari)
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+	}
+}
+
+-(void)layoutSubviews
+{
+	%orig;
+	if (safariDarkmode && inSafari)
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+	}
+	%orig;
+}
+
+-(void)setBackgroundColor:(id)arg1
+{
+	if (safariDarkmode && inSafari)
+	{
+		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+	}
+	%orig;
+}
+%end
+
 /* End safari darkmode */
+#pragma mark End App Darkmodes
