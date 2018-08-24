@@ -423,7 +423,12 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 		[(WebFrame*)arg2 frameView].hidden = NO;
 	}
 }
-
+/*
+David Attenborough: For frames, going dark is a sign of affection towards another frame.
+Boy frame: I would do anything for you
+Girl frame: Would you go dark for me?
+Boy frame: *goes dark for girl frame*
+*/
 %new
 -(void)goDarkForFrame:(id)arg1 {
 	if(!self.hasInjected) {
