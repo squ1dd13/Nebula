@@ -493,8 +493,21 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)didMoveToWindow
 {
 	%orig;
-	if (safariDarkmode)
+
+	unsigned int count = 0;
+	Ivar *ivars = class_copyIvarList(%c(BookmarkFavoriteView), &count);
+	NSMutableArray *ivArray = [NSMutableArray array];
+	//no fast enumeration here, we're back in the olden days
+	for (int i = 0; i < count; i++) {
+		Ivar ivar = ivars[i];
+		NSString *name = [NSString stringWithUTF8String:ivar_getName(ivar)];
+		NSLog(@"%@", name);
+		[ivArray addObject:name];
+	}
+
+	if (safariDarkmode && [ivArray containsObject:@"_titleLabel"])
 	{
+
 		UILabel* lbl = MSHookIvar<UILabel*>(self, "_titleLabel");
 		lbl.textColor = LCPParseColorString(textColorHex, @"");
 	}
