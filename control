@@ -1,6 +1,6 @@
 Package: com.octodev.nebula
 Name: Nebula
-Depends: mobilesubstrate
+Depends: mobilesubstrate, com.rpetrich.rocketbootstrap (>= 1.0.3)
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: Safari webpage darkmode.

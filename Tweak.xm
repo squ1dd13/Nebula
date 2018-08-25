@@ -2,6 +2,7 @@
 #define SETTINGS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula.plist"
 #define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
+#define APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-apps.plist"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
@@ -132,21 +133,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
     CFRelease(keyList);
 }
 
-%ctor {
-	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-
-	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
-	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
-	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
-	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
-	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
-	loadStylesheetsFromFiles();
-	loadWhitelist();
-	changeColorsInStylesheets();
-}
-
+%group Nebula
 %hook UIKBRenderConfig
 
 %new
@@ -721,3 +708,29 @@ Boy frame: *goes dark for girl frame*
 
 %end
 #pragma mark End Chrome Menu Toggle
+%end
+
+%ctor {
+	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-appschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+
+	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
+	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
+	NSDictionary *apps = [[NSDictionary alloc] initWithContentsOfFile:APPS_PLIST_PATH];
+	if([[apps allKeys] containsObject:[[NSBundle mainBundle] bundleIdentifier]]) {
+		//the app has at some point been disabled, and we need to check if it currently is
+		if([[apps valueForKey:[[NSBundle mainBundle] bundleIdentifier]] boolValue]) {
+			//app disabled, we will never init the hook group
+			return;
+		}
+	}
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
+	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
+	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
+	loadStylesheetsFromFiles();
+	loadWhitelist();
+	changeColorsInStylesheets();
+	%init(Nebula);
+}
