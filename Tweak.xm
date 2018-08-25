@@ -701,6 +701,40 @@ Boy frame: *goes dark for girl frame*
 
 %end
 #pragma mark End Chrome Menu Toggle
+//for the respring animation
+%hook UIStatusBar
+
+-(void)layoutSubviews {
+	%orig;
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
+}
+
+%new
+-(void)fadeOut {
+	[UIView animateWithDuration:0.3 animations:^() {
+		((UIView *)self).alpha = 0.0; //smooth
+	}];
+}
+
+%end
+
+%hook _UIStatusBar
+
+-(void)layoutSubviews {
+	%orig;
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
+}
+
+%new
+-(void)fadeOut {
+	[UIView animateWithDuration:0.3 animations:^() {
+		((UIView *)self).alpha = 0.0; //smooth
+	}];
+}
+
+%end
 %end
 
 %ctor {

@@ -110,6 +110,99 @@
 
 @end
 
+#import <spawn.h>
+#import <AudioToolbox/AudioServices.h>
+
+@interface SQRespringControl : NSObject
++(void)graduallyAdjustBrightnessToValue:(CGFloat)endValue;
++(void)respring;
+@end
+
+@implementation SQRespringControl
+
++ (void)graduallyAdjustBrightnessToValue:(CGFloat)endValue
+{
+    CGFloat startValue = [[UIScreen mainScreen] brightness];
+
+    CGFloat fadeInterval = 0.01;
+    double delayInSeconds = 0.005;
+    if (endValue < startValue)
+        fadeInterval = -fadeInterval;
+
+    CGFloat brightness = startValue;
+    while (fabs(brightness-endValue)>0) {
+
+        brightness += fadeInterval;
+
+        if (fabs(brightness-endValue) < fabs(fadeInterval))
+            brightness = endValue;
+
+        dispatch_time_t dispatchTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(dispatchTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [[UIScreen mainScreen] setBrightness:brightness];
+        });
+    }
+    UIView *finalDarkScreen = [[UIView alloc] initWithFrame:[[UIApplication sharedApplication] keyWindow].bounds];
+    finalDarkScreen.backgroundColor = [UIColor blackColor];
+    finalDarkScreen.alpha = 0.3;
+
+    //add it to the main window, but with no alpha
+    [[[UIApplication sharedApplication] keyWindow] addSubview:finalDarkScreen];
+
+    [UIView animateWithDuration:1.0f
+                          delay:0.0f
+                        options:UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+                         finalDarkScreen.alpha = 1.0f;
+                     }
+                     completion:^(BOOL finished){
+                         if (finished) {
+                             //DIE
+					    system("uicache"); //cydia doesn't do this, but it should
+					    sleep(1);
+                             pid_t pid;
+                             const char* args[] = {"killall", "-9", "backboardd", NULL};
+                             posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+                         }
+				}];
+}
+
+//beautiful and gentle respring effect
++ (void)respring {
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"UIStatusBarHide" object:nil userInfo:nil]; //fade out the status bar
+
+	//AudioServicesPlaySystemSound(1521); //triple haptic to tell user we're respringing
+    //make a visual effect view to fade in for the blur
+
+    UIVisualEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+
+    UIVisualEffectView *visualEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+
+    visualEffectView.frame = [[UIApplication sharedApplication] keyWindow].bounds;
+    visualEffectView.alpha = 0.0;
+
+    //add it to the main window, but with no alpha
+    [[[UIApplication sharedApplication] keyWindow] addSubview:visualEffectView];
+
+    //animate in the alpha
+    [UIView animateWithDuration:3.5f
+                          delay:0.0f
+                        options:UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+                         visualEffectView.alpha = 1.0f;
+                     }
+                     completion:^(BOOL finished){
+                         if (finished) {
+                             //call the animation here for the screen fade and respring
+                             [self graduallyAdjustBrightnessToValue:0.0f];
+                         }
+                     }];
+
+    //sleep(15);
+
+    //[[UIScreen mainScreen] setBrightness:0.0f]; //so the screen fades back in when the respringing is done
+}
+@end
 
 @implementation NBLRootListController
 
@@ -123,22 +216,10 @@
 
 -(void)viewWillAppear:(BOOL)a {
 	[super viewWillAppear:a];
-	id showCredits = ^{
-		UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Credits"
-														   message:@"Code by @squ1dd13 and @Muirey03. Graphic design by @TPinpal."
-												   	 preferredStyle:UIAlertControllerStyleAlert];
 
-		UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"Thanks!"
-													 style:UIAlertActionStyleDefault
-												    handler:^(UIAlertAction * action) {}];
-
-
-		[alert addAction:defaultAction];
-		[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
-	};
-	UIBarButtonItem *creditsButton = [[UIBarButtonItem alloc] initWithTitle:@"Credits" style:UIBarButtonItemStylePlain target:showCredits action:@selector(invoke)];
-	creditsButton.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
-	[self.navigationItem setRightBarButtonItem:creditsButton];
+	UIBarButtonItem *respringTing = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:[SQRespringControl class] action:@selector(respring)];
+	respringTing.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
+	[self.navigationItem setRightBarButtonItem:respringTing];
 
 	[UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 }
