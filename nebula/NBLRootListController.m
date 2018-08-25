@@ -218,6 +218,23 @@
 -(void)viewWillAppear:(BOOL)a {
 	[super viewWillAppear:a];
 
+	/*
+	when ya done with de prefs
+	an' ya want de change kept
+	gotta press de button at de top
+
+	dats de respring ting
+	it give ya de progress ring
+	so it look like ya phone has stopped
+
+	de reality is
+	im not takin de piss
+	sprin'board has gone an' dropped off
+
+	while its asleep
+	behind all of de scenes
+	into de plist de changes will pop
+	*/
 	UIBarButtonItem *respringTing = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:[SQRespringControl class] action:@selector(respring)];
 	respringTing.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 	[self.navigationItem setRightBarButtonItem:respringTing];
