@@ -36,11 +36,13 @@ void loadStylesheetsFromFiles() {
 	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+	err = nil; //if there is an error on this one, the next one will log an error without there being one unless we set this to nil
 
 	backupStylesheet = [NSString stringWithContentsOfFile:BACKUP_STYLESHEET_PATH encoding:NSUTF8StringEncoding error:&err];
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
 	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
+	err = nil;
 
 	//load custom stylesheets:
 	customStyles = [NSMutableDictionary dictionary];
@@ -667,3 +669,55 @@ Boy frame: *goes dark for girl frame*
 
 /* End safari darkmode */
 #pragma mark End App Darkmodes
+
+
+#pragma mark Chrome Menu Toggle
+
+//we might need to only run this code in the Chrome app just in case there's another app that uses a class with the same name
+@class ToolsMenuViewCell;
+@interface ToolsMenuViewItem : NSObject
+@property (nonatomic, copy, readwrite) NSString *accessibilityIdentifier;
+@property (nonatomic, assign, readwrite) BOOL active;
+@property (nonatomic, assign) SEL selector;
+@property (nonatomic, readwrite) ToolsMenuViewCell *tableViewCell;
+@property (nonatomic, assign, readwrite) NSInteger tag;
+@property (nonatomic, copy, readwrite) NSString *title;
+@end
+
+@interface ToolsMenuViewCell
+-(void)configureForMenuItem:(ToolsMenuViewItem *)item;
+@end
+
+%hook ToolsMenuViewController
+
+-(void)setMenuItems:(NSArray *)items {
+	//bloody hell it compiled first time
+	//worked first time, too
+	NSMutableArray *mutItems = [items mutableCopy];
+
+	ToolsMenuViewItem *item = [%c(ToolsMenuViewItem) new];
+	item.accessibilityIdentifier = @"kNebulaDarkModeId"; //pretty sure this doesn't matter, but it must have a use
+	item.active = YES;
+	item.selector = nil;
+	item.tag = -69; //what's this for? lmao
+	item.title = @"Toggle Dark Mode";
+
+	ToolsMenuViewCell *cell = [%c(ToolsMenuViewCell) new];
+	item.tableViewCell = cell;
+
+	[cell configureForMenuItem:item];
+
+	[mutItems insertObject:item atIndex:0];
+	%orig([mutItems copy]);
+}
+
+-(void)collectionView:(id)arg1 didSelectItemAtIndexPath:(NSIndexPath *)arg2 {
+	if(arg2.row == 1) {
+		//dark mode was pressed
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(!darkMode) userInfo:nil];
+	}
+	%orig;
+}
+
+%end
+#pragma mark End Chrome Menu Toggle
