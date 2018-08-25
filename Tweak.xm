@@ -450,13 +450,6 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
-%hook UIDevice
-
--(long long)_keyboardGraphicsQuality {
-	return 10;
-}
-%end
-
 #pragma mark App Darkmodes
 
 /* Safari darkmode */
