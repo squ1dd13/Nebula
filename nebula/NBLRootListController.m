@@ -158,7 +158,6 @@
                      completion:^(BOOL finished){
                          if (finished) {
                              //DIE
-					    system("uicache"); //cydia doesn't do this, but it should
 					    sleep(1);
                              pid_t pid;
                              const char* args[] = {"killall", "-9", "backboardd", NULL};
@@ -194,7 +193,9 @@
                      completion:^(BOOL finished){
                          if (finished) {
                              //call the animation here for the screen fade and respring
-                             [self graduallyAdjustBrightnessToValue:0.0f];
+					    pid_t pid;
+                             const char* args[] = {"killall", "-9", "backboardd", NULL};
+                             posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
                          }
                      }];
 
