@@ -144,10 +144,6 @@
 				<string>Enabled Sites</string>
 				<key>detail</key>
 				<string>NBLWhitelistController</string>
-				<key>disableSpecifiers</key>
-				<array>
-					<string>useBlacklist</string>
-				</array>
 			</dict>
 
 			<dict>
@@ -167,14 +163,6 @@
 				<string>Disabled Sites</string>
 				<key>detail</key>
 				<string>NBLBlacklistController</string>
-				<!--<key>disableSpecifiers</key>
-				<array>
-					<string>tableColor</string>
-				</array> -->
-				<key>enableSpecifiers</key>
-				<array>
-					<string>useBlacklist</string>
-				</array>
 			</dict>
 
 			<dict>
