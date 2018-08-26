@@ -255,7 +255,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	{
 		if(darkMode) {
 			[self goDark];
-		} else {
+		} else if(![[[self URL] host] containsString:@"twitter"]){
 			[self revertInjection];
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
 		}
@@ -277,7 +277,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 %new
 -(void)goDark {
-	if(!self.hasInjected) {
+	if(!self.hasInjected && ![[[self URL] host] containsString:@"twitter"]) {
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[self URL] host];
