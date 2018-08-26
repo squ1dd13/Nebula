@@ -255,7 +255,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	{
 		if(darkMode) {
 			[self goDark];
-		} else if(![[[self URL] host] containsString:@"twitter"]){
+		} else {
 			[self revertInjection];
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
 		}
