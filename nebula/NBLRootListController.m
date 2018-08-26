@@ -1,5 +1,6 @@
 #include "NBLRootListController.h"
 #include "NBLWhitelistController.h"
+#include "NBLBlacklistController.h"
 #import <objc/runtime.h>
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width

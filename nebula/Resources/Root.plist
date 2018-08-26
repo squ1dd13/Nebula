@@ -60,7 +60,7 @@
 				<key>key</key>
 				<string>safariDarkmode</string>
 				<key>label</key>
-				<string>Use safari darkmode</string>
+				<string>Use Safari UI Darkmode</string>
 				<key>PostNotification</key>
 				<string>com.octodev.nebula-prefschanged</string>
 			</dict>
@@ -108,6 +108,25 @@
 				<key>label</key>
 				<string>Text Color</string>
 			</dict>
+
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+			</dict>
+			<dict>
+				<key>cell</key>
+				<string>PSSwitchCell</string>
+				<key>default</key>
+				<false/>
+				<key>defaults</key>
+				<string>com.octodev.nebula</string>
+				<key>key</key>
+				<string>useBlacklist</string>
+				<key>label</key>
+				<string>Use Blacklist</string>
+				<key>PostNotification</key>
+				<string>com.octodev.nebula-prefschanged</string>
+			</dict>
 			<dict>
 				<key>cell</key>
 				<string>PSGroupCell</string>
@@ -125,8 +144,47 @@
 				<string>Enabled Sites</string>
 				<key>detail</key>
 				<string>NBLWhitelistController</string>
+				<key>disableSpecifiers</key>
+				<array>
+					<string>useBlacklist</string>
+				</array>
 			</dict>
 
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+				<key>label</key>
+				<string></string>
+				<key>footerText</key>
+				<string>A list of sites to never load into dark mode</string>
+			</dict>
+			<dict>
+				<key>cell</key>
+				<string>PSLinkCell</string>
+				<key>cellClass</key>
+				<string>SNActionCell</string>
+				<key>label</key>
+				<string>Disabled Sites</string>
+				<key>detail</key>
+				<string>NBLBlacklistController</string>
+				<!--<key>disableSpecifiers</key>
+				<array>
+					<string>tableColor</string>
+				</array> -->
+				<key>enableSpecifiers</key>
+				<array>
+					<string>useBlacklist</string>
+				</array>
+			</dict>
+
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+				<key>label</key>
+				<string></string>
+				<key>footerText</key>
+				<string>A list of apps to not load Nebula in</string>
+			</dict>
 			<dict>
 				<key>cell</key>
 				<string>PSLinkCell</string>

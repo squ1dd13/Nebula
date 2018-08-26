@@ -3,7 +3,7 @@ GO_EASY_ON_ME = 1
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = Nebula
-Nebula_FILES = NBLRootListController.m NBLWhitelistController.m
+Nebula_FILES = NBLRootListController.m NBLWhitelistController.m NBLBlacklistController.m
 Nebula_INSTALL_PATH = /Library/PreferenceBundles
 Nebula_FRAMEWORKS = UIKit
 Nebula_PRIVATE_FRAMEWORKS = Preferences

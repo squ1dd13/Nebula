@@ -310,9 +310,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)revertInjection {
 	self.hasInjected = NO;
 	NSLog(@"Reverting changes");
-	//if(self.hasInjected) {
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
-	//}
+	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
 
 }
 
