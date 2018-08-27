@@ -6,6 +6,8 @@
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
+#define inChrome ([[((UIView*)self) window] isMemberOfClass:%c(ChromeOverlayWindow)])
+#define chromeDarkmode YES
 
 #include "libcolorpicker.h"
 #include "nebula.h"
@@ -158,8 +160,25 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	}
 }
 
+-(void)setBarStyle:(NSInteger)arg1
+{
+	if (safariDarkmode && inSafari)
+	{
+		arg1 = UIBarStyleBlack;
+	}
+	%orig;
+}
+
+-(void)didMoveToWindow
+{
+	%orig;
+	if (safariDarkmode && inSafari)
+	{
+		[self setBarStyle:UIBarStyleBlack];
+	}
+}
+
 -(void)setItems:(NSArray *)items animated:(BOOL)anim {
-	NSLog(@"Setting toolbar items.");
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
 
@@ -188,7 +207,8 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	}
 
 	[buttons addObject:nightModeButton];
-	%orig([buttons copy], anim);
+	items = [buttons copy];
+	%orig;
 }
 
 //called when the button is pressed
@@ -308,10 +328,12 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 
 %new
 -(void)revertInjection {
-	self.hasInjected = NO;
-	NSLog(@"Reverting changes");
-	[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
-
+	if (self.hasInjected)
+	{
+		self.hasInjected = NO;
+		NSLog(@"Reverting changes");
+		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
+	}
 }
 
 %new
@@ -509,13 +531,13 @@ Boy frame: *goes dark for girl frame*
 %end
 
 %hook MobileSafariWindow
--(void)layoutSubviews
+-(void)setBackgroundColor:(id)arg1
 {
-	%orig;
 	if (safariDarkmode)
 	{
-		((UIView *)self).backgroundColor = LCPParseColorString(bgColorHex, @"");
+		arg1 = LCPParseColorString(bgColorHex, @"");
 	}
+	%orig;
 }
 %end
 
@@ -577,26 +599,6 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
-%hook UIToolbar
--(void)didMoveToWindow
-{
-    %orig;
-	if (safariDarkmode && inSafari)
-	{
-		[self setBarStyle:UIBarStyleBlack];
-	}
-}
-
--(void)setBarStyle:(NSInteger)arg1
-{
-	if (safariDarkmode && inSafari)
-	{
-		arg1 = UIBarStyleBlack;
-	}
-	%orig;
-}
-%end
-
 %hook UISearchBar
 -(void)didMoveToWindow
 {
@@ -648,7 +650,57 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
+%hook TabThumbnailHeaderView
+-(id)backgroundView
+{
+	UIView* o = %orig;
+	if (safariDarkmode)
+	{
+		o.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+	return o;
+}
+%end
 /* End safari darkmode */
+/* Chrome darkmode */
+%hook ToolbarConfiguration
+-(NSInteger)style
+{
+	return 1;
+}
+%end
+
+%hook ToolbarButtonFactory
+-(NSInteger)style
+{
+	return 1;
+}
+%end
+
+%hook OmniboxTextFieldIOS
+-(BOOL)incognito
+{
+	return YES;
+}
+
+-(id)initWithFrame:(CGRect)arg1 font:(id)arg2 textColor:(id)arg3 tintColor:(id)arg4
+{
+	arg3 = [UIColor whiteColor];
+	arg4 = [UIColor whiteColor];
+	return %orig;
+}
+
+-(id)selectedTextBackgroundColor
+{
+	return [UIColor colorWithWhite:1 alpha:0.1];
+}
+
+-(id)placeholderTextColor
+{
+	return [UIColor colorWithWhite:1 alpha:0.5];
+}
+%end
+/* End chrome darkmode */
 #pragma mark End App Darkmodes
 
 
