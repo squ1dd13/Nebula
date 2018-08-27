@@ -4,6 +4,7 @@
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width
 #define kHeight [[UIApplication sharedApplication] keyWindow].frame.size.height
+#define iOS11 [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."][0] isEqualToString:@"11"]
 
 @implementation NBLBlacklistController
 
@@ -15,6 +16,11 @@
 	return _specifiers;
 }
 
+-(void)viewWillDisappear:(BOOL)a {
+	[self.view endEditing:YES]; //this one actually works
+	[super viewWillDisappear:a];
+}
+
 @end
 
 @implementation BlacklistTableViewCell
@@ -24,7 +30,7 @@
 	if (self)
 	{
 		//populate blacklist array
-		[self getblacklistArray];
+		[self getBlacklistArray];
 
 		blacklistTable = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, kWidth, blacklistArray.count * 45) style:UITableViewStylePlain];
 		blacklistTable.editing = YES;
@@ -46,13 +52,13 @@
 	blacklistTable.frame = CGRectMake(0, 0, kWidth, blacklistArray.count * 45);
 }
 
--(void)getblacklistArray
+-(void)getBlacklistArray
 {
 	blacklistArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"blacklistArray" inDomain:@"com.octodev.nebula"] mutableCopy];
 	if (!blacklistArray) { blacklistArray = [NSMutableArray new]; }
 }
 
--(void)setblacklistArray
+-(void)setBlacklistArray
 {
 	[[NSUserDefaults standardUserDefaults] setObject:[blacklistArray copy] forKey:@"blacklistArray" inDomain:@"com.octodev.nebula"];
 	notify_post([@"com.octodev.nebula-prefschanged" UTF8String]);
@@ -62,13 +68,14 @@
 {
 	[super didMoveToWindow];
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc]  initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonPressed)];
-	[((NBLBlacklistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLBlacklistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 }
 
 -(void)addButtonPressed
 {
 	[blacklistArray addObject:@""];
-	[self setblacklistArray];
+	[self setBlacklistArray];
 	[self reloadTable];
 }
 
@@ -117,7 +124,7 @@
 -(void)tableView:(id)arg1 commitEditingStyle:(long long)arg2 forRowAtIndexPath:(NSIndexPath*)arg3
 {
 	[blacklistArray removeObjectAtIndex:arg3.row];
-	[self setblacklistArray];
+	[self setBlacklistArray];
 	[self reloadTable];
 }
 
@@ -126,17 +133,19 @@
 	NSInteger index = ((BlacklistCell*)[arg1 superview]).index;
 	NSString* text = arg1.text;
 	blacklistArray[index] = text;
-	[self setblacklistArray];
+	[self setBlacklistArray];
 
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc]  initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonPressed)];
-	[((NBLBlacklistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLBlacklistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 	[self reloadTable];
 }
 
 -(void)textFieldDidBeginEditing:(UITextField*)arg1
 {
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:arg1 action:@selector(resignFirstResponder)];
-	[((NBLBlacklistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLBlacklistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 }
 @end
 
@@ -156,6 +165,7 @@
 -(void)didMoveToSuperview
 {
 	[super didMoveToSuperview];
-	_textField.delegate = (BlacklistTableViewCell*)[[self superview] superview];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	_textField.delegate = (BlacklistTableViewCell*)[self valueForKeyPath:keyPath];
 }
 @end

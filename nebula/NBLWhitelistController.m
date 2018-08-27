@@ -3,6 +3,7 @@
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width
 #define kHeight [[UIApplication sharedApplication] keyWindow].frame.size.height
+#define iOS11 [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."][0] isEqualToString:@"11"]
 
 @implementation NBLWhitelistController
 
@@ -14,9 +15,16 @@
 	return _specifiers;
 }
 
+-(void)viewWillDisappear:(BOOL)a {
+	[self.view endEditing:YES]; //this one actually works
+	[super viewWillDisappear:a];
+}
+
 @end
 
 @implementation WhitelistTableViewCell
+
+
 - (id)initWithSpecifier:(PSSpecifier *)specifier
 {
 	self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
@@ -61,7 +69,8 @@
 {
 	[super didMoveToWindow];
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc]  initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonPressed)];
-	[((NBLWhitelistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLWhitelistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 }
 
 -(void)addButtonPressed
@@ -122,21 +131,22 @@
 
 -(void)textFieldDidEndEditing:(UITextField*)arg1
 {
-	NSLog(@"Saving");
 	NSInteger index = ((WhitelistCell*)[arg1 superview]).index;
 	NSString* text = arg1.text;
 	whitelistArray[index] = text;
 	[self setWhitelistArray];
 
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc]  initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addButtonPressed)];
-	[((NBLWhitelistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLWhitelistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 	[self reloadTable];
 }
 
 -(void)textFieldDidBeginEditing:(UITextField*)arg1
 {
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:arg1 action:@selector(resignFirstResponder)];
-	[((NBLWhitelistController*)[[[self superview] superview] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	[((NBLWhitelistController *)[[self valueForKeyPath:keyPath] _viewControllerForAncestor]).navigationItem setRightBarButtonItem:addButton];
 }
 @end
 
@@ -156,6 +166,7 @@
 -(void)didMoveToSuperview
 {
 	[super didMoveToSuperview];
-	_textField.delegate = (WhitelistTableViewCell*)[[self superview] superview];
+	NSString *keyPath = (iOS11) ? @"superview.superview" : @"superview.superview.superview";
+	_textField.delegate = (WhitelistTableViewCell*)[self valueForKeyPath:keyPath];
 }
 @end
