@@ -13,13 +13,13 @@
 - (CGFloat)preferredHeightForWidth:(CGFloat)arg1 inTableView:(id)arg2;
 @end
 
-@interface SQDPrefBannerView : UITableViewCell <PreferencesTableCustomView> {
+@interface NBLPrefBannerView : UITableViewCell <PreferencesTableCustomView> {
     UILabel *label;
 }
 
 @end
 //banner
-@implementation SQDPrefBannerView
+@implementation NBLPrefBannerView
 
 - (id)initWithSpecifier:(PSSpecifier *)specifier {
     self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];

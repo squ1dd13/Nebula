@@ -8,7 +8,7 @@
 				<key>cell</key>
 				<string>PSGroupCell</string>
 				<key>footerCellClass</key>
-				<string>SQDPrefBannerView</string>
+				<string>NBLPrefBannerView</string>
 			</dict>
 			<dict>
 				<key>cell</key>
