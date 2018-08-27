@@ -2,6 +2,7 @@
 #include "NBLWhitelistController.h"
 #include "NBLBlacklistController.h"
 #import <objc/runtime.h>
+#include <CSPreferences/libCSPUtilities.h>
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width
 
@@ -50,9 +51,6 @@
 - (CGFloat)preferredHeightForWidth:(CGFloat)arg1 {
     return 70.0f;
 }
-@end
-
-@interface PSTableCell : UITableViewCell
 @end
 
 @implementation PSTableCell (Nebula)

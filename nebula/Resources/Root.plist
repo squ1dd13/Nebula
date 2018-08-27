@@ -126,10 +126,22 @@
 				<string>Use Blacklist</string>
 				<key>PostNotification</key>
 				<string>com.octodev.nebula-prefschanged</string>
+				<key>disableSpecifiers</key>
+				<array>
+					<string>whitelistSpec</string>
+					<!-- <string>whitelistInfo</string> -->
+				</array>
+				<key>enableSpecifiers</key>
+				<array>
+					<string>blacklistSpec</string>
+					<!-- <string>blacklistInfo</string> -->
+				</array>
 			</dict>
 			<dict>
 				<key>cell</key>
 				<string>PSGroupCell</string>
+				<key>key</key>
+				<string>whitelistInfo</string>
 				<key>label</key>
 				<string></string>
 				<key>footerText</key>
@@ -144,11 +156,15 @@
 				<string>Enabled Sites</string>
 				<key>detail</key>
 				<string>NBLWhitelistController</string>
+				<key>key</key>
+				<string>whitelistSpec</string>
 			</dict>
 
 			<dict>
 				<key>cell</key>
 				<string>PSGroupCell</string>
+				<key>key</key>
+				<string>blacklistInfo</string>
 				<key>label</key>
 				<string></string>
 				<key>footerText</key>
@@ -163,6 +179,8 @@
 				<string>Disabled Sites</string>
 				<key>detail</key>
 				<string>NBLBlacklistController</string>
+				<key>key</key>
+				<string>blacklistSpec</string>
 			</dict>
 
 			<dict>
