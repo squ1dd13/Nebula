@@ -1,92 +1,93 @@
 /* Universal */
 * {
-    background-color: NEBULA_DARK !important;
-    color: NEBULA_TEXT !important;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
+	background-color: NEBULA_DARK !important;
+	color: NEBULA_TEXT !important;
+	text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
 
 :link, :link * {color: #55C8FF !important}
 :visited, :visited * {color: #FFE155 !important}
 
 ::selection {
-  color: #0DD6EF !important;
-  background: #FF5573 !important;
+	color: #0DD6EF !important;
+	background: #FF5573 !important;
 }
 
 @media screen and (max-width: 1000px) {
-  body, #site {
-    overflow-x: hidden;
-  }
+	body, #site {
+		overflow-x: hidden;
+	}
 
-   .row .col {
-     width: 100%;
-     float: none;
-   }
- }
+	.row .col {
+		width: 100%;
+		float: none;
+	}
+}
 
 .panel-body {
-  background-color: NEBULA_DARK !important;
+	background-color: NEBULA_DARK !important;
 }
 
 body panel panel-body {
-  background-color: NEBULA_DARK;
+	background-color: NEBULA_DARK;
 }
 
 img {
-    position:relative;
-    background:#fff0!important;
+	position:relative;
+	background:#fff0!important;
 }
 
 img *, img~* *, img~* {
-    background:#fff0!important;
+	background:#fff0!important;
 }
 
 code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=text], [type=text] * {
-    background: NEBULA_DARKER !important;
-    background-color: NEBULA_DARKER !important;
-    text-shadow: none!important;
+	background: NEBULA_DARKER !important;
+	background-color: NEBULA_DARKER !important;
+	text-shadow: none!important;
 }
 /* End Universal */
 
 /* Google */
 .mnr-c *:not(.kp-header):not(.CNf3nf):not(.DKfgue), .xICLNb *, .card *, .dRYYxd, .gBCQ5d, .gBCQ5d *, .A7Yvie *, .UUbT9 ul * {
-    background:#fff0 !important;
+	background:#fff0 !important;
 }
 
 .SSH64d{
-    background:rgba(0, 0, 0, 0.5)!important;
+	background:rgba(0, 0, 0, 0.5)!important;
 }
 
 .mnr-c, .xICLNb, .card, .card ul, .UUbT9 ul, .A7Yvie {
-    background:NEBULA_DARKER !important;
+	background:NEBULA_DARKER !important;
 }
 
 .qzEoUe {
-    color:#12c14a!important;
+	color:#12c14a!important;
 }
 
 .Tg7LZd {
-    background:#3b78e7!important;
+	background:#3b78e7!important;
 }
 
 .kp-header {
-    background:#68752F!important;
+	background:#68752F!important;
 }
 
 .HK0d3e {
-    background: url(/images/nav_logo289_hr.webp) no-repeat!important;
-    background-position: 0 -374px!important;
-    background-size: 167px!important;
+	background: url(/images/nav_logo289_hr.webp) no-repeat!important;
+	background-position: 0 -374px!important;
+	background-size: 167px!important;
 }
 
 .Is2Q0d {
-    background: url(/images/nav_logo289_hr.webp) no-repeat!important;
-    background-position: 0 -374px!important;
-    background-size: 167px!important;
+	background: url(/images/nav_logo289_hr.webp) no-repeat!important;
+	background-position: 0 -374px!important;
+	background-size: 167px!important;
 }
 /* End Google */
 
 /* StackOverflow */
+<<<<<<< HEAD
 .str, .tag, .lit, .pl-s, .pl-pds, .pl-v {
     color:#d84c4c!important;
 }
@@ -101,20 +102,41 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 
 .atn , .pl-k{
     color:#E64320!important;
+=======
+.str, .tag, .lit {
+	color:#d84c4c!important;
+}
+
+.kwd, .dec {
+	color:#26c9e4!important;
+}
+
+.atv, .typ {
+	color:#0fbd9e!important;
+}
+
+.atn {
+	color:#E64320!important;
+>>>>>>> a3d47e4ff7584f70bc0799c9bc15849146afd4be
 }
 
 .current {
-    background:#fff0 !important;
+	background:#fff0 !important;
 }
 
 .nav li.current a {
-    background:#e47a25!important;
-    color:NEBULA_TEXT!important;
-    text-shadow:none!important;
+	background:#e47a25!important;
+	color:NEBULA_TEXT!important;
+	text-shadow:none!important;
 }
 
+<<<<<<< HEAD
 .com, .pl-c {
     color:#858c93!important;
+=======
+.com {
+	color:#858c93!important;
+>>>>>>> a3d47e4ff7584f70bc0799c9bc15849146afd4be
 }
 
 .line {
@@ -128,32 +150,32 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 
 /* Packix */
 .package-container panel a panel-body, .modern panel-body {
-    background:NEBULA_DARKER !important;
-    box-shadow:none!important;
+	background:NEBULA_DARKER !important;
+	box-shadow:none!important;
 }
 
 .package-container panel a panel-body * {
-    background:#fff0 !important;
-    color:NEBULA_TEXT!important;
+	background:#fff0 !important;
+	color:NEBULA_TEXT!important;
 }
 
 .modern panel-body *, .review-list li * {
-    background:#fff0 !important;
+	background:#fff0 !important;
 }
 
 .review-list li {
-    background: NEBULA_DARK !important;
+	background: NEBULA_DARK !important;
 }
 
 .review-rating, .review-rating *, .rating-stats>tbody>tr>td, .rating-stats>tbody>tr>td * {
-    color: #eebd10!important;
+	color: #eebd10!important;
 }
 
 .changes-more>div {
-    background: linear-gradient(90deg,#30c381,#089e46)!important;
-    background-image: linear-gradient(90deg, rgb(48, 195, 129), rgb(8, 158, 70))!important;
-    background-clip:text!important;
-    -webkit-background-clip:text!important;
-    text-shadow:none!important;
+	background: linear-gradient(90deg,#30c381,#089e46)!important;
+	background-image: linear-gradient(90deg, rgb(48, 195, 129), rgb(8, 158, 70))!important;
+	background-clip:text!important;
+	-webkit-background-clip:text!important;
+	text-shadow:none!important;
 }
 /* End Packix */
