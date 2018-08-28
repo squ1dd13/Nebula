@@ -145,6 +145,44 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	CFRelease(keyList);
 }
 
+@interface NBLBroadcaster : NSObject
+@property (nonatomic, readonly) BOOL darkModeEnabled;
+@end
+
+@implementation NBLBroadcaster
+static NBLBroadcaster *sharedInstance;
+
++(void)initialize {
+	if([NBLBroadcaster class] == self) {
+		sharedInstance = [self new];
+	}
+}
+
++(NBLBroadcaster *)sharedBroadcaster {
+	return sharedInstance;
+}
+
++(id)allocWithZone:(struct _NSZone *)zone {
+	if(sharedInstance && [NBLBroadcaster class] == self) {
+		[NSException raise:NSGenericException format:@"Multiple instances of NBLBroadcaster cannot be created"];
+	}
+	return [super allocWithZone:zone];
+}
+
+-(BOOL)darkModeEnabled {
+	return darkMode;
+}
+
+-(void)toggleDarkmode:(BOOL)takeYourPick {
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"NebulaToggle" object:@(takeYourPick) userInfo:nil];
+}
+
+-(void)forceToggleDarkmode:(BOOL)takeYourPick {
+	darkMode = takeYourPick;
+}
+
+@end
+
 %group Nebula
 %hook UIKBRenderConfig
 
