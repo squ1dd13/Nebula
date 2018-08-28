@@ -439,8 +439,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 %end
 
 %hook UIWebView
-%property (nonatomic, assign) BOOL hasInjected;
-
 -(void)webView:(id)arg1 didCommitLoadForFrame:(id)arg2
 {
 	%orig;
@@ -453,7 +451,6 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2
 {
 	%orig;
-	self.hasInjected = NO;
 	NSLog(@"Navigation ended.");
 
 	if (!useBlacklist)
@@ -481,31 +478,31 @@ Boy frame: *goes dark for girl frame*
 */
 %new
 -(void)goDarkForFrame:(id)arg1 {
-	if(!self.hasInjected) {
-		WebFrame* webFrame = (WebFrame*)arg1;
-		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
+	WebFrame* webFrame = (WebFrame*)arg1;
+	NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
-		NSString *host = [[webFrame webui_URL] host];
-		if(![host containsString:@"www."]) {
-			host = [@"www." stringByAppendingString:host];
-		}
-		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
-		if([customStyles valueForKey:host]) {
-			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
-			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
-			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
-			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
-			stylesheet = custom;
-		}
-		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
-		{
-			stylesheet = backupStylesheet;
-		}
+	NSString *host = [[webFrame webui_URL] host];
+	if(host && ![host containsString:@"www."]) {
+		host = [@"www." stringByAppendingString:host];
+	}
+	NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
+	if(host && [customStyles valueForKey:host]) {
+		NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
+		custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
+		custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
+		custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
+		stylesheet = custom;
+	}
+	else if (host && [backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
+	{
+		stylesheet = backupStylesheet;
+	}
 
-		NSString *head = [webFrame _stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+	NSString *head = [webFrame _stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
+	if (head)
+	{
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
 		[webFrame _stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
-		self.hasInjected = YES;
 	}
 }
 %end
