@@ -1,8 +1,8 @@
 # Interacting with Nebula
 
-Out of the box, Nebula does not offer support for all browsers. However, other tweaks can interact with Nebula. This means that developers can write add-ons that allow use in more browsers.
+Out of the box, Nebula does not offer toggles for all browsers. However, other tweaks can interact with Nebula. This means that developers can write add-ons that allow use in more browsers.
 
-The `NBLBroadcaster` provides a few basic features that are necessary for writing such add-ons. (Reading and toggling dark mode at the time of this writing.) The class is part of Nebula, so it can be used on any device with Nebula installed, and you do not need to download extra files.
+The `NBLBroadcaster` class provides a few basic features that are necessary for writing such add-ons. (Reading and toggling dark mode at the time of this writing.) The class is part of Nebula, so it can be used on any device with Nebula installed, and you do not need to download extra files.
 
 ## Use
 
