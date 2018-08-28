@@ -66,6 +66,20 @@
 			</dict>
 			<dict>
 				<key>cell</key>
+				<string>PSSwitchCell</string>
+				<key>default</key>
+				<true/>
+				<key>defaults</key>
+				<string>com.octodev.nebula</string>
+				<key>key</key>
+				<string>chromeDarkmode</string>
+				<key>label</key>
+				<string>Use Chrome UI Darkmode</string>
+				<key>PostNotification</key>
+				<string>com.octodev.nebula-prefschanged</string>
+			</dict>
+			<dict>
+				<key>cell</key>
 				<string>PSLinkCell</string>
 				<key>cellClass</key>
 				<string>PFSimpleLiteColorCell</string>

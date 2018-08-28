@@ -8,7 +8,9 @@
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
 #define inChrome ([[((UIView*)self) window] isMemberOfClass:%c(ChromeOverlayWindow)])
-#define chromeDarkmode YES
+#define chromeDarkmode PreferencesBool(@"chromeDarkmode", YES)
+#define enabled PreferencesBool(@"enabled", YES)
+#define hapticEnabled PreferencesBool("hapticEnabled", YES)
 
 #include "libcolorpicker.h"
 #include "nebula.h"
@@ -222,7 +224,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 //called when the button is pressed
 %new
 -(void)nightMode:(UIButton *)button {
-	AudioServicesPlaySystemSound(1519);
+	if (hapticEnabled) { AudioServicesPlaySystemSound(1519); }
 	//fade
 	[UIView transitionWithView:button
 				   duration:0.1
@@ -1099,6 +1101,7 @@ void objc_exception_throw(id _Nonnull exception);
 %end
 
 %ctor {
+	if (!enabled) { return; }
 	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
