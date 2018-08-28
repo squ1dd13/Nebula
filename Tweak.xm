@@ -967,7 +967,13 @@ Boy frame: *goes dark for girl frame*
 	%orig;
 	if (chromeDarkmode)
 	{
-		((UILabel*)self).textColor = LCPParseColorString(textColorHex, @"");
+		CGFloat white;
+		CGFloat alpha;
+		[((UILabel*)self).textColor getWhite:&white alpha:&alpha];
+		if (white == 0.2)
+		{
+			((UILabel*)self).textColor = LCPParseColorString(textColorHex, @"");
+		}
 	}
 }
 %end
