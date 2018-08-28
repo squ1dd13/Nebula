@@ -14,6 +14,7 @@
 
 #include "libcolorpicker.h"
 #include "nebula.h"
+#import <objc/runtime.h>
 
 @import WebKit;
 @import UIKit;
@@ -509,6 +510,70 @@ Boy frame: *goes dark for girl frame*
 		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
 		[webFrame _stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead]];
 	}
+}
+%end
+
+
+%hook SFSafariViewController
+%property (nonatomic, assign) UIButton *darkButton;
+
+-(void)viewDidLayoutSubviews {
+	%orig;
+	NSLog(@"Hello world!");
+	[(NSObject *)self performSelector:@selector(setToolbarItems:) withObject:@[]];
+}
+
+-(void)setToolbarItems:(NSArray *)items {
+	NSLog(@"Setting.");
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
+
+	self.darkButton = [UIButton buttonWithType:UIButtonTypeCustom];
+	[self.darkButton setFrame:CGRectMake(0, 0, 20, 20)];
+	[self.darkButton addTarget:self action:@selector(nightMode:) forControlEvents:UIControlEventTouchUpInside];
+	[self.darkButton setSelected:darkMode];
+
+	//cheers pinpal
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected];
+
+	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
+
+	NSMutableArray *buttons = [items mutableCopy];
+	if(!(UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]))) {
+		UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+		space.width = 30;
+		[buttons addObject:space];
+	} else {
+		for(UIBarButtonItem *item in buttons) {
+			if(item.width > 10) {
+				item.width = 5;
+			}
+		}
+	}
+
+	[buttons addObject:nightModeButton];
+	items = [buttons copy];
+	%orig;
+}
+
+//called when the button is pressed
+%new
+-(void)nightMode:(UIButton *)button {
+	AudioServicesPlaySystemSound(1519);
+	//fade
+	[UIView transitionWithView:button
+				   duration:0.1
+				    options:UIViewAnimationOptionTransitionCrossDissolve
+				 animations:^{ button.selected = !button.selected; }
+				 completion:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
+}
+
+//resets the button to its default value
+%new
+-(void)resetButton {
+	[self.darkButton setSelected:NO];
 }
 %end
 
@@ -1067,37 +1132,6 @@ Boy frame: *goes dark for girl frame*
 }
 
 %end
-
-
-%hook SFSafariViewController
-
--(id)initWithURL:(NSURL *)arg1 {
-	NSLog(@"SFSafariViewController initialising");
-	[(NSObject *)%orig performSelector:@selector(setToolbarItems:) withObject:@[]];
-	return %orig;
-}
-%end
-
-%hook UIViewController
-
--(void)viewDidLayoutSubviews {
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		if([self isKindOfClass:NSClassFromString(@"SFSafariViewController")] || [self isMemberOfClass:NSClassFromString(@"SFSafariViewController")]) {
-			showError();
-		}
-	});
-	%orig;
-}
-%end
-
-void objc_exception_throw(id _Nonnull exception);
-
-%hookf(void, objc_exception_throw, id _Nonnull exception) {
-	NSLog(@"EXCEPTION: %@", exception);
-	%orig;
-}
-
 %end
 
 %ctor {
@@ -1134,5 +1168,6 @@ void objc_exception_throw(id _Nonnull exception);
 	loadWhitelist();
 	loadBlacklist();
 	changeColorsInStylesheets();
+
 	%init(Nebula);
 }
