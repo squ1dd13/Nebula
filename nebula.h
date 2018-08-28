@@ -98,6 +98,10 @@ NSString* makeHexColorDarker(NSString* hexColor, CGFloat percent)
 -(void)setInteractionTintColor:(id)arg1;
 @end
 
+@interface SFSafariViewController
+@property (nonatomic, assign) UIButton *darkButton;
+@end
+
 //changes a double hex string to a plain string
 NSString* fromDoubleHex(NSString* str, NSString* message)
 {
