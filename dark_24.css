@@ -129,7 +129,7 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
     color:NEBULA_TEXT!important;
 }
 
-.modern panel-body *:not(.rating-fill):not(.rating-bar), .review-list li * {
+.modern panel-body *, .review-list li * {
     background:#fff0 !important;
 }
 
@@ -147,13 +147,5 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
     background-clip:text!important;
     -webkit-background-clip:text!important;
     text-shadow:none!important;
-}
-
-.rating-fill {
-    background:#ececec!important;
-}
-
-.rating-bar {
-    background:#0f0f0f!important;
 }
 /* End Packix */
