@@ -276,6 +276,44 @@
 					</dict>
 				</array>
 			</dict>
+
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+				<key>label</key>
+				<string>Credits</string>
+			</dict>
+			<dict>
+			    <key>cellClass</key>
+			    <string>HBTwitterCell</string>
+			    <key>label</key>
+			    <string>Squiddy</string>
+			    <key>user</key>
+			    <string>Squ1dd13</string>
+			</dict>
+			<dict>
+			    <key>cellClass</key>
+			    <string>HBTwitterCell</string>
+			    <key>label</key>
+			    <string>Muirey03</string>
+			    <key>user</key>
+			    <string>Muirey03</string>
+			</dict>
+
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+				<key>label</key>
+				<string>Thanks to PINPAL for the icons</string>
+			</dict>
+			<dict>
+			    <key>cellClass</key>
+			    <string>HBTwitterCell</string>
+			    <key>label</key>
+			    <string>PINPAL</string>
+			    <key>user</key>
+			    <string>TPinpal</string>
+			</dict>
 		</array>
 		<key>title</key>
 		<string>Nebula</string>
