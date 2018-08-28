@@ -12,7 +12,7 @@ You also need to interface the class before using it.
 
 ```objc
 
-@interface NBLBroadcaster
+@interface NBLBroadcaster : NSObject
 +(NBLBroadcaster *)sharedBroadcaster;
 -(BOOL)darkModeEnabled;
 -(void)toggleDarkmode:(BOOL)dark;
