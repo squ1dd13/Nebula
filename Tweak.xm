@@ -326,27 +326,30 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[self URL] host];
-		if(![host containsString:@"www."]) {
+		if(host && ![host containsString:@"www."]) {
 			host = [@"www." stringByAppendingString:host];
 		}
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
-		if([customStyles valueForKey:host]) {
+		if(host && [customStyles valueForKey:host]) {
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
 			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
 			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARK" withString:bgColorHex];
 			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_TEXT" withString:textColorHex];
 			stylesheet = custom;
 		}
-		else if ([backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
+		else if (host && [backupStylesheetSites containsObject:host]) //see if host should use backup stylesheet
 		{
 			stylesheet = backupStylesheet;
 		}
 
 		NSString *head = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
-		NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
-		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
-			self.alpha = 1;
-		}];
+		if (head)
+		{
+			NSString *modifiedHead = [head stringByAppendingString:[NSString stringWithFormat:@"\n<style>%@</style>", stylesheet]];
+			[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", modifiedHead] completion:^{
+				self.alpha = 1;
+			}];
+		}
 		self.hasInjected = YES;
 	}
 }
