@@ -802,6 +802,17 @@ Boy frame: *goes dark for girl frame*
 	return o;
 }
 %end
+
+%hook _SFQuickLookDocumentView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (safariDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
 /* End safari darkmode */
 /* Chrome darkmode */
 %hook ToolbarConfiguration
