@@ -112,57 +112,10 @@
 #import <AudioToolbox/AudioServices.h>
 
 @interface SQRespringControl : NSObject
-+(void)graduallyAdjustBrightnessToValue:(CGFloat)endValue;
 +(void)respring;
 @end
 
 @implementation SQRespringControl
-
-+ (void)graduallyAdjustBrightnessToValue:(CGFloat)endValue
-{
-    CGFloat startValue = [[UIScreen mainScreen] brightness];
-
-    CGFloat fadeInterval = 0.01;
-    double delayInSeconds = 0.005;
-    if (endValue < startValue)
-        fadeInterval = -fadeInterval;
-
-    CGFloat brightness = startValue;
-    while (fabs(brightness-endValue)>0) {
-
-        brightness += fadeInterval;
-
-        if (fabs(brightness-endValue) < fabs(fadeInterval))
-            brightness = endValue;
-
-        dispatch_time_t dispatchTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-        dispatch_after(dispatchTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [[UIScreen mainScreen] setBrightness:brightness];
-        });
-    }
-    UIView *finalDarkScreen = [[UIView alloc] initWithFrame:[[UIApplication sharedApplication] keyWindow].bounds];
-    finalDarkScreen.backgroundColor = [UIColor blackColor];
-    finalDarkScreen.alpha = 0.3;
-
-    //add it to the main window, but with no alpha
-    [[[UIApplication sharedApplication] keyWindow] addSubview:finalDarkScreen];
-
-    [UIView animateWithDuration:1.0f
-                          delay:0.0f
-                        options:UIViewAnimationOptionCurveEaseOut
-                     animations:^{
-                         finalDarkScreen.alpha = 1.0f;
-                     }
-                     completion:^(BOOL finished){
-                         if (finished) {
-                             //DIE
-					    sleep(1);
-                             pid_t pid;
-                             const char* args[] = {"killall", "-9", "backboardd", NULL};
-                             posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-                         }
-				}];
-}
 
 //beautiful and gentle respring effect
 + (void)respring {
@@ -182,7 +135,7 @@
     [[[UIApplication sharedApplication] keyWindow] addSubview:visualEffectView];
 
     //animate in the alpha
-    [UIView animateWithDuration:1.5f
+    [UIView animateWithDuration:0.5f
                           delay:0.0f
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
