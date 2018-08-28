@@ -182,7 +182,7 @@
     [[[UIApplication sharedApplication] keyWindow] addSubview:visualEffectView];
 
     //animate in the alpha
-    [UIView animateWithDuration:3.5f
+    [UIView animateWithDuration:1.5f
                           delay:0.0f
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
