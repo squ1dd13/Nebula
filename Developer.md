@@ -17,7 +17,6 @@ You also need to interface the class before using it.
 -(BOOL)darkModeEnabled;
 -(void)toggleDarkmode:(BOOL)dark;
 -(void)forceToggleDarkmode:(BOOL)dark;
-
 @end
 
 ```
