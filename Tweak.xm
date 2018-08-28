@@ -231,7 +231,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 				    options:UIViewAnimationOptionTransitionCrossDissolve
 				 animations:^{ button.selected = !button.selected; }
 				 completion:nil];
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"NebulaToggle" object:@(button.selected) userInfo:nil];
 }
 
 //resets the button to its default value
@@ -308,13 +308,13 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 		}
 	}
 
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"DarkWebToggle" object:nil]; //clear up before we add it again
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"DarkWebToggle" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"NebulaToggle" object:nil]; //clear up before we add it again
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleInjection:) name:@"NebulaToggle" object:nil];
 }
 
 %new
 -(void)toggleInjection:(NSNotification *)notification {
-	[[NSNotificationCenter defaultCenter] postNotificationName:(darkMode) ? @"DarkWebDark" : @"DarkWebLight" object:nil userInfo:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:(darkMode) ? @"NebulaDark" : @"NebulaLight" object:nil userInfo:nil];
 
 	darkMode = [[notification object] boolValue];
 
@@ -566,7 +566,7 @@ Boy frame: *goes dark for girl frame*
 				    options:UIViewAnimationOptionTransitionCrossDissolve
 				 animations:^{ button.selected = !button.selected; }
 				 completion:nil];
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(button.selected) userInfo:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"NebulaToggle" object:@(button.selected) userInfo:nil];
 }
 
 //resets the button to its default value
@@ -1090,7 +1090,7 @@ Boy frame: *goes dark for girl frame*
 -(void)collectionView:(id)arg1 didSelectItemAtIndexPath:(NSIndexPath *)arg2 {
 	if(arg2.row == 1) {
 		//dark mode was pressed
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"DarkWebToggle" object:@(!darkMode) userInfo:nil];
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"NebulaToggle" object:@(!darkMode) userInfo:nil];
 	}
 	%orig;
 }
