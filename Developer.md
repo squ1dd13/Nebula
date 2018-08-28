@@ -11,19 +11,23 @@ You can use `NBLBroadcaster` in any process where Nebula is running. When Nebula
 You also need to interface the class before using it.
 
 ```objc
+
 @interface NBLBroadcaster
 +(NBLBroadcaster *)sharedBroadcaster;
 -(BOOL)darkModeEnabled;
 -(void)toggleDarkmode:(BOOL)dark;
 -(void)forceToggleDarkmode:(BOOL)dark;
 
-@end```
+@end
+
+```
 
 Toggling darkmode with `toggleDarkmode:` will only work when a web view is visible. If a web view is not visible, use `forceToggleDarkmode:`, which has *almost* the same effect. The only difference is that the effect of `forceToggleDarkmode:` will only be seen when a new web view is created or is interacted with for the first time.
 
 ### Example
 
 ```objc
+
 //when something happens that will use NBLBroadcaster
 -(void)workMajek {
 	//quit if Nebula is disabled in this app
