@@ -1,6 +1,6 @@
 /* Universal */
 * {
-    background: NEBULA_DARK !important;
+    background-color: NEBULA_DARK !important;
     color: NEBULA_TEXT !important;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
@@ -41,7 +41,7 @@ img *, img~* *, img~* {
     background:#fff0!important;
 }
 
-code, pre, code *, pre *, textarea {
+code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=text], [type=text] * {
     background: NEBULA_DARKER !important;
     background-color: NEBULA_DARKER !important;
     text-shadow: none!important;
@@ -129,7 +129,7 @@ code, pre, code *, pre *, textarea {
     color:NEBULA_TEXT!important;
 }
 
-.modern panel-body *, .review-list li * {
+.modern panel-body *:not(.rating-fill):not(.rating-bar), .review-list li * {
     background:#fff0 !important;
 }
 
@@ -147,5 +147,13 @@ code, pre, code *, pre *, textarea {
     background-clip:text!important;
     -webkit-background-clip:text!important;
     text-shadow:none!important;
+}
+
+.rating-fill {
+    background:#ececec!important;
+}
+
+.rating-bar {
+    background:#0f0f0f!important;
 }
 /* End Packix */
