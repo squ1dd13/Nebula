@@ -14,8 +14,8 @@
 #include "nebula.h"
 
 @import WebKit;
-@import AudioToolbox;
 @import UIKit;
+@import SafariServices;
 
 static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
@@ -129,18 +129,18 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 }
 
 static void PreferencesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
-    preferences = nil;
-    CFStringRef appID = CFSTR("com.octodev.nebula");
-    CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-    if (!keyList) {
-        NSLog(@"There's been an error getting the key list!");
-        return;
-    }
-    preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-    if (!preferences) {
-        NSLog(@"There's been an error getting the preferences dictionary!");
-    }
-    CFRelease(keyList);
+	preferences = nil;
+	CFStringRef appID = CFSTR("com.octodev.nebula");
+	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!keyList) {
+		NSLog(@"There's been an error getting the key list!");
+		return;
+	}
+	preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!preferences) {
+		NSLog(@"There's been an error getting the preferences dictionary!");
+	}
+	CFRelease(keyList);
 }
 
 %group Nebula
@@ -369,7 +369,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	__block BOOL finished = NO;
 
 	[self evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if(error) NSLog(@"JSErr: %@", error.localizedDescription);
+		if(error) showError();
 		finished = YES;
 		[comp invoke];
 	}];
@@ -389,7 +389,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 				resultString = [NSString stringWithFormat:@"%@", result];
 			}
 		} else {
-			NSLog(@"JSErr: %@", error.localizedDescription);
+			showError();
 		}
 		finished = YES;
 	}];
@@ -1059,6 +1059,37 @@ Boy frame: *goes dark for girl frame*
 }
 
 %end
+
+
+%hook SFSafariViewController
+
+-(id)initWithURL:(NSURL *)arg1 {
+	NSLog(@"SFSafariViewController initialising");
+	[(NSObject *)%orig performSelector:@selector(setToolbarItems:) withObject:@[]];
+	return %orig;
+}
+%end
+
+%hook UIViewController
+
+-(void)viewDidLayoutSubviews {
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		if([self isKindOfClass:NSClassFromString(@"SFSafariViewController")] || [self isMemberOfClass:NSClassFromString(@"SFSafariViewController")]) {
+			showError();
+		}
+	});
+	%orig;
+}
+%end
+
+void objc_exception_throw(id _Nonnull exception);
+
+%hookf(void, objc_exception_throw, id _Nonnull exception) {
+	NSLog(@"EXCEPTION: %@", exception);
+	%orig;
+}
+
 %end
 
 %ctor {
@@ -1068,6 +1099,8 @@ Boy frame: *goes dark for girl frame*
 
 	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
 	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
+
+	//blacklisted apps
 	NSDictionary *apps = [[NSDictionary alloc] initWithContentsOfFile:APPS_PLIST_PATH];
 	if([[apps allKeys] containsObject:[[NSBundle mainBundle] bundleIdentifier]]) {
 		//the app has at some point been disabled, and we need to check if it currently is

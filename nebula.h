@@ -1,3 +1,5 @@
+@import AudioToolbox;
+
 NSInteger colorProfile;
 
 struct pixel {
@@ -140,6 +142,19 @@ UIImage* changeImageToColor(UIImage* image, UIColor* color) {
 	UIGraphicsEndImageContext();
 
 	return outImage;
+}
+
+void showError() {
+	AudioServicesPlaySystemSound(1521);
+	UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Something Went Wrong"
+													   message:@"Nebula encountered a problem. Please try again."
+												 preferredStyle:UIAlertControllerStyleAlert];
+
+	UIAlertAction *kk = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+												handler:^(UIAlertAction * action) {}];
+
+	[alert addAction:kk];
+	[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
 }
 
 @interface UIView (Nebula)
