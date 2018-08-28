@@ -10,7 +10,7 @@
 #define inChrome ([[((UIView*)self) window] isMemberOfClass:%c(ChromeOverlayWindow)])
 #define chromeDarkmode PreferencesBool(@"chromeDarkmode", YES)
 #define enabled PreferencesBool(@"enabled", YES)
-#define hapticEnabled PreferencesBool("hapticEnabled", YES)
+#define hapticEnabled PreferencesBool(@"hapticEnabled", YES)
 
 #include "libcolorpicker.h"
 #include "nebula.h"
