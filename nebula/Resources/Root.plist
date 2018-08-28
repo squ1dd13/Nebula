@@ -206,7 +206,7 @@
 				<key>label</key>
 				<string></string>
 				<key>footerText</key>
-				<string>These will always load into lightmode (only applies to apps in the "Apps to use blacklist" list)</string>
+				<string>These sites will always load into lightmode (only applies to apps in the "Apps to use blacklist" list)</string>
 			</dict>
 			<dict>
 				<key>cell</key>

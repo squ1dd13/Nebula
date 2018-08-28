@@ -87,19 +87,19 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 /* End Google */
 
 /* StackOverflow */
-.str, .tag, .lit {
+.str, .tag, .lit, .pl-s, .pl-pds, .pl-v {
     color:#d84c4c!important;
 }
 
-.kwd, .dec {
+.kwd, .dec, .pl-c1 {
     color:#26c9e4!important;
 }
 
-.atv, .typ {
+.atv, .typ, .pl-en, .pl-ent {
     color:#0fbd9e!important;
 }
 
-.atn {
+.atn , .pl-k{
     color:#E64320!important;
 }
 
@@ -113,8 +113,16 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
     text-shadow:none!important;
 }
 
-.com {
+.com, .pl-c {
     color:#858c93!important;
+}
+
+.line {
+    color:NEBULA_TEXT!important;
+}
+
+.pl-smi, .pl-e {
+    color:#969fff!important;
 }
 /* End StackOverflow */
 
