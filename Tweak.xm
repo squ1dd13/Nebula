@@ -18,7 +18,6 @@
 
 @import WebKit;
 @import UIKit;
-@import SafariServices;
 
 static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
