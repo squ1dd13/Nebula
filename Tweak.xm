@@ -802,6 +802,17 @@ Boy frame: *goes dark for girl frame*
 	return o;
 }
 %end
+
+%hook _SFQuickLookDocumentView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (safariDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
 /* End safari darkmode */
 /* Chrome darkmode */
 %hook ToolbarConfiguration
@@ -855,6 +866,15 @@ Boy frame: *goes dark for girl frame*
 %end
 
 %hook UIImageView
+-(void)didMoveToSuperview
+{
+	%orig;
+	if ([[self superview] isKindOfClass:%c(MDCCollectionViewCell)])
+	{
+		[self removeFromSuperview];
+	}
+}
+
 -(void)setImage:(id)image
 {
 	if (([[self superview] isKindOfClass:%c(ToolbarButton)] || [[[self superview] superview] isMemberOfClass:%c(OmniboxTextFieldIOS)] || [[self superview] isKindOfClass:%c(ToolbarCenteredButton)] || [[self superview] isKindOfClass:%c(NewTabPageBarButton)] || [[self _viewControllerForAncestor] isMemberOfClass:%c(ToolsMenuViewController)] || [[self superview] isMemberOfClass:%c(MDCButtonBarButton)]) && chromeDarkmode)
@@ -894,6 +914,17 @@ Boy frame: *goes dark for girl frame*
 		((UIViewController*)self).view.backgroundColor = LCPParseColorString(bgColorHex, @"");
 		((UIViewController*)self).view.subviews[0].backgroundColor = [UIColor clearColor];
 	}
+}
+%end
+
+%hook UIViewController
+-(NSInteger)preferredStatusBarStyle
+{
+	if (chromeDarkmode && ([[self.view window] isMemberOfClass:%c(ChromeOverlayWindow)]))
+	{
+		return 1;
+	}
+	return %orig;
 }
 %end
 
@@ -1078,6 +1109,50 @@ Boy frame: *goes dark for girl frame*
 		{
 			((UILabel*)self).textColor = LCPParseColorString(textColorHex, @"");
 		}
+	}
+}
+%end
+
+%hook FindBarView
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIView*)self).superview.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook UITextField
+-(void)didMoveToWindow
+{
+	%orig;
+	if (inChrome && chromeDarkmode)
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
+
+%hook ClearBrowsingBar
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook UIButton
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode && inChrome)
+	{
+		self.backgroundColor = [UIColor clearColor];
 	}
 }
 %end
