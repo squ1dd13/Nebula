@@ -76,7 +76,7 @@
 					<key>key</key>
 					<string>backgroundColor</string>
 					<key>fallback</key>
-					<string>#1D1D1D</string>
+					<string>#262626</string>
 					<key>PostNotification</key>
 					<string>com.octodev.nebula-colorchanged</string>
 					<key>alpha</key>
@@ -112,40 +112,68 @@
 			<dict>
 				<key>cell</key>
 				<string>PSGroupCell</string>
-			</dict>
-			<dict>
-				<key>cell</key>
-				<string>PSSwitchCell</string>
-				<key>default</key>
-				<false/>
-				<key>defaults</key>
-				<string>com.octodev.nebula</string>
-				<key>key</key>
-				<string>useBlacklist</string>
-				<key>label</key>
-				<string>Use Blacklist</string>
-				<key>PostNotification</key>
-				<string>com.octodev.nebula-prefschanged</string>
-				<key>disableSpecifiers</key>
-				<array>
-					<string>whitelistSpec</string>
-					<!-- <string>whitelistInfo</string> -->
-				</array>
-				<key>enableSpecifiers</key>
-				<array>
-					<string>blacklistSpec</string>
-					<!-- <string>blacklistInfo</string> -->
-				</array>
-			</dict>
-			<dict>
-				<key>cell</key>
-				<string>PSGroupCell</string>
-				<key>key</key>
-				<string>whitelistInfo</string>
 				<key>label</key>
 				<string></string>
 				<key>footerText</key>
-				<string>A list of sites to always load into dark mode</string>
+				<string>These apps will load all sites into darkmode by default except for those in the "Disabled Sites" list</string>
+			</dict>
+			<dict>
+				<key>cell</key>
+				<string>PSLinkCell</string>
+				<key>bundle</key>
+				<string>AppList</string>
+				<key>isController</key>
+				<string>1</string>
+				<key>label</key>
+				<string>Apps to use blacklist</string>
+				<key>icon</key>
+				<string></string>
+				<key>ALSettingsKey</key>
+				<string>blacklistApps</string>
+				<key>ALSettingsPath</key>
+				<string>/var/mobile/Library/Preferences/com.octodev.nebula-blacklistapps.plist</string>
+				<key>ALSingleEnabledMode</key>
+				<string>0</string>
+				<key>ALSettingsKeyPrefix</key>
+				<string></string>
+				<key>ALChangeNotification</key>
+				<string>com.octodev.nebula-blacklistappschanged</string>
+				<key>ALSectionDescriptors</key>
+				<array>
+					<dict>
+						<key>cell-class-name</key>
+						<string>ALSwitchCell</string>
+						<key>predicate</key>
+						<string>isSystemApplication = TRUE</string>
+						<key>icon-size</key>
+						<string>29</string>
+						<key>suppress-hidden-apps</key>
+						<string>1</string>
+						<key>title</key>
+						<string>System Apps</string>
+					</dict>
+					<dict>
+						<key>cell-class-name</key>
+						<string>ALSwitchCell</string>
+						<key>predicate</key>
+						<string>isSystemApplication = FALSE</string>
+						<key>icon-size</key>
+						<string>29</string>
+						<key>suppress-hidden-apps</key>
+						<string>1</string>
+						<key>title</key>
+						<string>User Apps</string>
+					</dict>
+				</array>
+			</dict>
+
+			<dict>
+				<key>cell</key>
+				<string>PSGroupCell</string>
+				<key>label</key>
+				<string></string>
+				<key>footerText</key>
+				<string>These sites will always load into darkmode, regardless of the status of the toggle</string>
 			</dict>
 			<dict>
 				<key>cell</key>
@@ -156,19 +184,15 @@
 				<string>Enabled Sites</string>
 				<key>detail</key>
 				<string>NBLWhitelistController</string>
-				<key>key</key>
-				<string>whitelistSpec</string>
 			</dict>
 
 			<dict>
 				<key>cell</key>
 				<string>PSGroupCell</string>
-				<key>key</key>
-				<string>blacklistInfo</string>
 				<key>label</key>
 				<string></string>
 				<key>footerText</key>
-				<string>A list of sites to never load into dark mode</string>
+				<string>These will always load into lightmode (only applies to apps in the "Apps to use blacklist" list)</string>
 			</dict>
 			<dict>
 				<key>cell</key>
@@ -179,8 +203,6 @@
 				<string>Disabled Sites</string>
 				<key>detail</key>
 				<string>NBLBlacklistController</string>
-				<key>key</key>
-				<string>blacklistSpec</string>
 			</dict>
 
 			<dict>

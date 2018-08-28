@@ -114,7 +114,7 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
         NSLog(@"There's been an error getting the preferences dictionary!");
     }
     CFRelease(keyList);
-	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
 	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	changeColorsInStylesheets();
@@ -156,7 +156,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	%orig;
 	if (safariDarkmode)
 	{
-		[self setInteractionTintColor:[UIColor whiteColor]];
+		[self setInteractionTintColor:LCPParseColorString(textColorHex, @"")];
 	}
 }
 
@@ -572,7 +572,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if (safariDarkmode && inSafari)
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)]))
 	{
 		self.textColor = LCPParseColorString(textColorHex, @"");
 	}
@@ -580,7 +580,7 @@ Boy frame: *goes dark for girl frame*
 
 -(void)setTextColor:(id)arg1
 {
-	if (safariDarkmode && inSafari)
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)]))
 	{
 		arg1 = LCPParseColorString(textColorHex, @"");
 	}
@@ -666,38 +666,250 @@ Boy frame: *goes dark for girl frame*
 %hook ToolbarConfiguration
 -(NSInteger)style
 {
-	return 1;
-}
-%end
-
-%hook ToolbarButtonFactory
--(NSInteger)style
-{
-	return 1;
+	if (chromeDarkmode)
+	{
+		return 1;
+	}
+	return %orig;
 }
 %end
 
 %hook OmniboxTextFieldIOS
 -(BOOL)incognito
 {
-	return YES;
+	if (chromeDarkmode)
+	{
+		return YES;
+	}
+	return %orig;
 }
 
 -(id)initWithFrame:(CGRect)arg1 font:(id)arg2 textColor:(id)arg3 tintColor:(id)arg4
 {
-	arg3 = [UIColor whiteColor];
-	arg4 = [UIColor whiteColor];
+	if (chromeDarkmode)
+	{
+		arg3 = LCPParseColorString(textColorHex, @"");
+		arg4 = LCPParseColorString(textColorHex, @"");
+	}
 	return %orig;
 }
 
 -(id)selectedTextBackgroundColor
 {
-	return [UIColor colorWithWhite:1 alpha:0.1];
+	if (chromeDarkmode)
+	{
+		return [UIColor colorWithWhite:1 alpha:0.1];
+	}
+	return %orig;
 }
 
 -(id)placeholderTextColor
 {
-	return [UIColor colorWithWhite:1 alpha:0.5];
+	if (chromeDarkmode)
+	{
+		return [UIColor colorWithWhite:1 alpha:0.5];
+	}
+	return %orig;
+}
+%end
+
+%hook UIImageView
+-(void)setImage:(id)image
+{
+	if (([[self superview] isKindOfClass:%c(ToolbarButton)] || [[[self superview] superview] isMemberOfClass:%c(OmniboxTextFieldIOS)] || [[self superview] isKindOfClass:%c(ToolbarCenteredButton)] || [[self superview] isKindOfClass:%c(NewTabPageBarButton)] || [[self _viewControllerForAncestor] isMemberOfClass:%c(ToolsMenuViewController)] || [[self superview] isMemberOfClass:%c(MDCButtonBarButton)]) && chromeDarkmode)
+	{
+		image = changeImageToColor(image, LCPParseColorString(textColorHex, @""));
+	}
+	%orig;
+}
+%end
+
+%hook ToolbarToolsMenuButton
+-(id)normalStateTint
+{
+	if (chromeDarkmode)
+	{
+		return LCPParseColorString(textColorHex, @"");
+	}
+	return %orig;
+}
+%end
+
+%hook BrowserViewController
+-(NSInteger)preferredStatusBarStyle
+{
+	if (chromeDarkmode)
+	{
+		return 1;
+	}
+	return %orig;
+}
+
+-(void)viewDidLoad
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIViewController*)self).view.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIViewController*)self).view.subviews[0].backgroundColor = [UIColor clearColor];
+	}
+}
+%end
+
+%hook UICollectionView
+-(void)didMoveToWindow
+{
+	%orig;
+	if (inChrome && chromeDarkmode)
+	{
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook ContentSuggestionsCell
+-(void)layoutSubviews
+{
+	%orig;
+	if (chromeDarkmode && ((UIView*)self).subviews.count > 1)
+	{
+		((UIView*)self).subviews[1].backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook ContentSuggestionsFooterCell
+-(void)layoutSubviews
+{
+	%orig;
+	if (chromeDarkmode && ((UIView*)self).subviews.count > 1)
+	{
+		((UIView*)self).subviews[1].backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook OverscrollActionsView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook NewTabPageBar
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, 15), @"");
+	}
+	%orig;
+}
+%end
+
+%hook ConfirmInfoBarView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, 15), @"");
+	}
+	%orig;
+}
+%end
+
+%hook NewTabPageHeaderView
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIView*)self).subviews[1].backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, 15), @"");
+		((UIImageView*)((UIView*)self).subviews[1].subviews[0]).image = nil;
+	}
+}
+%end
+
+%hook ToolsMenuViewCell
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook ToolsMenuViewToolsCell
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIView*)self).subviews[0].backgroundColor = LCPParseColorString(bgColorHex, @"");
+		for (UIView* v in ((UIView*)self).subviews[0].subviews)
+		{
+			v.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		}
+	}
+}
+%end
+
+%hook CollectionViewDetailCell
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(bgColorHex, @"");
+		((UIImageView*)((UIView*)self).subviews[0]).image = nil;
+	}
+}
+%end
+
+%hook MDCCollectionViewCell
+-(void)layoutSubviews
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(bgColorHex, @"");
+		for (UIView* v in ((UIView*)self).subviews)
+		{
+			if ([v isMemberOfClass:[UIImageView class]])
+			{
+				((UIImageView*)v).image = nil;
+			}
+		}
+	}
+}
+%end
+
+%hook MDCFlexibleHeaderView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, 15), @"");
+	}
+	%orig;
+}
+%end
+
+%hook BookmarkTableCell
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
 }
 %end
 /* End chrome darkmode */
@@ -806,7 +1018,7 @@ Boy frame: *goes dark for girl frame*
 			return;
 		}
 	}
-	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#1D1D1D";
+	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
 	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	loadStylesheetsFromFiles();

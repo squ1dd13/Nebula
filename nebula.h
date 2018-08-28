@@ -120,6 +120,32 @@ NSString* fromDoubleHex(NSString* str, NSString* message)
 	return ((NSString *)removedMessage);
 }
 
+UIImage* changeImageToColor(UIImage* image, UIColor* color) {
+	UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+	CGRect imageRect = CGRectMake(0.0f, 0.0f, image.size.width, image.size.height);
+
+	CGContextRef ctx = UIGraphicsGetCurrentContext();
+
+	// Draw a white background (for white mask)
+	CGFloat r, g, b, a;
+	[color getRed:&r green:&g blue:&b alpha:&a];
+	CGContextSetRGBFillColor(ctx, r, g, b, a);
+	CGContextFillRect(ctx, imageRect);
+
+	// Apply the source image's alpha
+	[image drawInRect:imageRect blendMode:kCGBlendModeDestinationIn alpha:1.0f];
+
+	UIImage* outImage = UIGraphicsGetImageFromCurrentImageContext();
+
+	UIGraphicsEndImageContext();
+
+	return outImage;
+}
+
+@interface UIView (Nebula)
+-(id)_viewControllerForAncestor;
+@end
+
 //dark keyboard
 @interface UIKBRenderConfig : NSObject
 -(void)setLightKeyboard:(BOOL)light;

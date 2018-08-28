@@ -9,7 +9,6 @@ Nebula_FRAMEWORKS = UIKit
 Nebula_PRIVATE_FRAMEWORKS = Preferences
 Nebula_CFLAGS = -fobjc-arc
 Nebula_LIBRARIES = colorpicker applist
-Nebula_LDFLAGS +=  -lCSPreferences -lCSPUtilities
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

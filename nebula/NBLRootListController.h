@@ -1,6 +1,6 @@
 #import <Preferences/PSListController.h>
-#import <CSPreferences/libCSPreferences.h>
+#import <Preferences/PSTableCell.h>
 
-@interface NBLRootListController : CSPListController
+@interface NBLRootListController : PSListController
 
 @end
