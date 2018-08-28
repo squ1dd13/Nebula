@@ -3,6 +3,7 @@
 #define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
 #define APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-apps.plist"
+#define BLACKLIST_APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-blacklistapps.plist"
 #define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
@@ -23,10 +24,12 @@ static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
 static NSArray *whitelist;
+static NSArray *blacklist;
 static NSString* bgColorHex;
 static NSString* darkerColorHex;
 static NSString* textColorHex;
 static NSDictionary* preferences;
+static BOOL useBlacklist;
 
 static BOOL PreferencesBool(NSString* key, BOOL fallback)
 {
@@ -85,6 +88,11 @@ void loadStylesheetsFromFiles() {
 void loadWhitelist()
 {
 	whitelist = preferences[@"whitelistArray"] ? preferences[@"whitelistArray"] : [NSArray new];
+}
+
+void loadBlacklist()
+{
+	blacklist = preferences[@"blacklistArray"] ? preferences[@"blacklistArray"] : [NSArray new];
 }
 
 void changeColorsInStylesheets()
@@ -249,7 +257,7 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)_didCommitLoadForMainFrame
 {
 	%orig;
-	if (darkMode || (whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode))
+	if (darkMode || (whitelist && [whitelist containsObject:[[self URL] host]]) || (blacklist && ![blacklist containsObject:[[self URL] host]] && useBlacklist))
 	{
 		self.alpha = 0;
 		[self superview].backgroundColor = LCPParseColorString(bgColorHex, @"");
@@ -264,20 +272,37 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	//back up the original values
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 
-	BOOL whitelisted = NO;
-	if(whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode) {
-		NSLog(@"Site is whitelisted.");
-		[self goDark];
-		whitelisted = YES;
-	}
-
-	if (!whitelisted)
+	if (!useBlacklist)
 	{
-		if(darkMode) {
+		BOOL whitelisted = NO;
+		if(whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode) {
+			NSLog(@"Site is whitelisted.");
 			[self goDark];
-		} else {
+			whitelisted = YES;
+		}
+
+		if (!whitelisted)
+		{
+			if(darkMode) {
+				[self goDark];
+			} else {
+				[self revertInjection];
+				[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+			}
+		}
+	}
+	else
+	{
+		BOOL blacklisted = NO;
+		if(blacklist && [blacklist containsObject:[[self URL] host]]) {
+			NSLog(@"Site is blacklisted.");
 			[self revertInjection];
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
+			blacklisted = YES;
+		}
+
+		if (!blacklisted)
+		{
+			[self goDark];
 		}
 	}
 
@@ -419,7 +444,8 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 -(void)webView:(id)arg1 didCommitLoadForFrame:(id)arg2
 {
 	%orig;
-	if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+	if ((whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) || (blacklist && ![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]] && useBlacklist))
+	{
 		[(WebFrame*)arg2 frameView].hidden = YES;
 	}
 }
@@ -430,10 +456,21 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	self.hasInjected = NO;
 	NSLog(@"Navigation ended.");
 
-	if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
-		NSLog(@"Site is whitelisted.");
-		[self goDarkForFrame:arg2];
-		[(WebFrame*)arg2 frameView].hidden = NO;
+	if (!useBlacklist)
+	{
+		if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+			NSLog(@"Site is whitelisted.");
+			[self goDarkForFrame:arg2];
+			[(WebFrame*)arg2 frameView].hidden = NO;
+		}
+	}
+	else
+	{
+		if(![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+			NSLog(@"Site is not blacklisted, lets go dark baby");
+			[self goDarkForFrame:arg2];
+			[(WebFrame*)arg2 frameView].hidden = NO;
+		}
 	}
 }
 /*
@@ -1006,7 +1043,6 @@ Boy frame: *goes dark for girl frame*
 	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-appschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
 	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
@@ -1018,11 +1054,21 @@ Boy frame: *goes dark for girl frame*
 			return;
 		}
 	}
+
+	NSDictionary *blacklistApps = [[NSDictionary alloc] initWithContentsOfFile:BLACKLIST_APPS_PLIST_PATH];
+	if([[blacklistApps allKeys] containsObject:[[NSBundle mainBundle] bundleIdentifier]]) {
+		//the app has at some point been disabled, and we need to check if it currently is
+		if([[blacklistApps valueForKey:[[NSBundle mainBundle] bundleIdentifier]] boolValue]) {
+			//using blacklist
+			useBlacklist = YES;
+		}
+	}
 	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
 	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	loadStylesheetsFromFiles();
 	loadWhitelist();
+	loadBlacklist();
 	changeColorsInStylesheets();
 	%init(Nebula);
 }
