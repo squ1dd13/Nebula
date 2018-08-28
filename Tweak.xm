@@ -949,6 +949,28 @@ Boy frame: *goes dark for girl frame*
 	%orig;
 }
 %end
+
+%hook SelfSizingTableView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook OmniboxPopupTruncatingLabel
+-(void)layoutSubviews
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		((UILabel*)self).textColor = LCPParseColorString(textColorHex, @"");
+	}
+}
+%end
 /* End chrome darkmode */
 #pragma mark End App Darkmodes
 
