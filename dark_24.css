@@ -99,7 +99,7 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
     color:#0fbd9e!important;
 }
 
-.atn , .pl-k {
+.atn, .pl-k {
     color:#E64320!important;
 }
 
@@ -115,6 +115,7 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 
 .com, .pl-c {
     color:#858c93!important;
+}
 
 .line {
     color:NEBULA_TEXT!important;

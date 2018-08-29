@@ -25,6 +25,7 @@ static NSString *backupStylesheet;
 static BOOL darkMode = NO;
 static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
+static NSArray* neverLoadInto = @[@"www.apple.com", @"mobile.twitter.com"];
 static NSArray *whitelist;
 static NSArray *blacklist;
 static NSString* bgColorHex;
@@ -362,13 +363,10 @@ static NBLBroadcaster *sharedInstance;
 
 %new
 -(void)goDark {
-	if(!self.hasInjected && ![[[self URL] host] containsString:@"twitter"]) {
+	if(!self.hasInjected && ![neverLoadInto containsObject:[[self URL] host]]) {
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[self URL] host];
-		if(host && ![host containsString:@"www."]) {
-			host = [@"www." stringByAppendingString:host];
-		}
 		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if(host && [customStyles valueForKey:host]) {
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
@@ -525,9 +523,6 @@ Boy frame: *goes dark for girl frame*
 	NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 	NSString *host = [[webFrame webui_URL] host];
-	if(host && ![host containsString:@"www."]) {
-		host = [@"www." stringByAppendingString:host];
-	}
 	NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 	if(host && [customStyles valueForKey:host]) {
 		NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
