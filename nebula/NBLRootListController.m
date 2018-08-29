@@ -22,30 +22,42 @@
 @implementation NBLPrefBannerView
 
 - (id)initWithSpecifier:(PSSpecifier *)specifier {
-    self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-    if (self) {
+	self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+	if (self) {
 
-        CGRect labelFrame = CGRectMake(0, -15, kWidth, 70);
+		CGRect labelFrame = CGRectMake(0, -15, kWidth, 70);
 
-        label = [[UILabel alloc] initWithFrame:labelFrame];
+		label = [[UILabel alloc] initWithFrame:labelFrame];
 
-        [label.layer setMasksToBounds:YES];
-        [label setNumberOfLines:1];
-        label.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:40];
+		[label.layer setMasksToBounds:YES];
+		[label setNumberOfLines:1];
+		label.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:40];
 
-        label.textColor = [UIColor blackColor];
-        label.textAlignment = NSTextAlignmentCenter;
-        label.text = @"Nebula";
-        //label.alpha = 0.0;
-        [self addSubview:label];
+		label.textColor = [UIColor blackColor];
+		//label.textAlignment = NSTextAlignmentCenter;
+		label.text = @"Nebula";
 
-        //fade in
-        //[UIView animateWithDuration:1.3 animations:^() {
-          //  label.alpha = 1.0;
-        //}];
+		NSTextAttachment *attachment = [NSTextAttachment new];
+		attachment.image = [UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/Nebula.bundle/Icon@3x.png"];
+		attachment.bounds = CGRectMake(-8.0, 0, attachment.image.size.width, attachment.image.size.height);
 
-    }
-    return self;
+		NSAttributedString *attrString = [NSAttributedString attributedStringWithAttachment:attachment];
+		NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:@""];
+		[text appendAttributedString:attrString];
+
+		NSMutableAttributedString *secondText = [[NSMutableAttributedString alloc] initWithString:@"Nebula"];
+
+		[text appendAttributedString:secondText];
+
+		label.textAlignment = NSTextAlignmentCenter;
+		label.attributedText = text;
+
+		[self addSubview:label];
+
+
+
+	}
+	return self;
 }
 - (CGFloat)preferredHeightForWidth:(CGFloat)arg1 {
     return 70.0f;
