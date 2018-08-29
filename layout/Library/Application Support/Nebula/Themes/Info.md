@@ -1,6 +1,6 @@
 # Making themes
 
-1. Themes should be installed to the /Library/Application Support/7361666172696461726b/Themes/ folder
+1. Themes should be installed to the /Library/Application Support/Nebula/Themes/ folder
 
 2. Themes are .css files, any other file extensions are ignored
 

@@ -87,7 +87,6 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 /* End Google */
 
 /* StackOverflow */
-<<<<<<< HEAD
 .str, .tag, .lit, .pl-s, .pl-pds, .pl-v {
     color:#d84c4c!important;
 }
@@ -100,24 +99,8 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
     color:#0fbd9e!important;
 }
 
-.atn , .pl-k{
+.atn , .pl-k {
     color:#E64320!important;
-=======
-.str, .tag, .lit {
-	color:#d84c4c!important;
-}
-
-.kwd, .dec {
-	color:#26c9e4!important;
-}
-
-.atv, .typ {
-	color:#0fbd9e!important;
-}
-
-.atn {
-	color:#E64320!important;
->>>>>>> a3d47e4ff7584f70bc0799c9bc15849146afd4be
 }
 
 .current {
@@ -130,14 +113,8 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 	text-shadow:none!important;
 }
 
-<<<<<<< HEAD
 .com, .pl-c {
     color:#858c93!important;
-=======
-.com {
-	color:#858c93!important;
->>>>>>> a3d47e4ff7584f70bc0799c9bc15849146afd4be
-}
 
 .line {
     color:NEBULA_TEXT!important;

@@ -1,10 +1,10 @@
 #define COLORS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebulacolors.plist"
 #define SETTINGS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula.plist"
-#define STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c65.st"
-#define BACKUP_STYLESHEET_PATH @"/Library/Application Support/7361666172696461726b/7374796c66.st"
+#define STYLESHEET_PATH @"/Library/Application Support/Nebula/7374796c65.st"
+#define BACKUP_STYLESHEET_PATH @"/Library/Application Support/Nebula/7374796c66.st"
 #define APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-apps.plist"
 #define BLACKLIST_APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-blacklistapps.plist"
-#define stylesPath @"/Library/Application Support/7361666172696461726b/Themes"
+#define stylesPath @"/Library/Application Support/Nebula/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
 #define inChrome ([[((UIView*)self) window] isMemberOfClass:%c(ChromeOverlayWindow)])
