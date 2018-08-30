@@ -37,8 +37,10 @@
 		label.text = @"Nebula";
 
 		NSTextAttachment *attachment = [NSTextAttachment new];
-		attachment.image = [UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/Nebula.bundle/Icon@3x.png"];
-		attachment.bounds = CGRectMake(-8.0, 0, attachment.image.size.width, attachment.image.size.height);
+		UIImage *image = [UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/Nebula.bundle/Icon@3x.png"];
+		CGSize size = image.size;
+		attachment.image = resizeImage(image, CGSizeMake(size.width + 14.0, size.height + 14.0));
+		attachment.bounds = CGRectMake(-8.0, -7.0, attachment.image.size.width, attachment.image.size.height);
 
 		NSAttributedString *attrString = [NSAttributedString attributedStringWithAttachment:attachment];
 		NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:@""];
@@ -201,7 +203,7 @@
 	respringTing.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 	[self.navigationItem setRightBarButtonItem:respringTing];
 
-	[UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
+	[UISwitch appearanceWhenContainedInInstancesOfClasses:@[self.class]].onTintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 }
 
 @end

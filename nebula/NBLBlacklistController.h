@@ -1,6 +1,6 @@
 #import <Preferences/PSListController.h>
 
-@interface UIView (Nebula)
+@interface UIView (Neboola)
 -(id)_viewControllerForAncestor;
 @end
 
