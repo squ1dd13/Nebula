@@ -375,7 +375,6 @@ static NBLBroadcaster *sharedInstance;
 	__block BOOL finished = NO;
 
 	[self evaluateJavaScript:js completionHandler:^(id result, NSError *error) {
-		if(error) showError();
 		finished = YES;
 		[comp invoke];
 	}];
@@ -394,8 +393,6 @@ static NBLBroadcaster *sharedInstance;
 			if (result != nil) {
 				resultString = [NSString stringWithFormat:@"%@", result];
 			}
-		} else {
-			showError();
 		}
 		finished = YES;
 	}];
