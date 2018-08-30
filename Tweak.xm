@@ -11,6 +11,7 @@
 #define chromeDarkmode PreferencesBool(@"chromeDarkmode", YES)
 #define enabled PreferencesBool(@"enabled", YES)
 #define hapticEnabled PreferencesBool(@"hapticEnabled", YES)
+#define disableInSpringboard PreferencesBool(@"disableInSpringboard", YES)
 
 #include "libcolorpicker.h"
 #include "nebula.h"
@@ -22,17 +23,14 @@
 static UIBarButtonItem *nightModeButton = nil;
 static NSString *stylesheetFromHex;
 static NSString *backupStylesheet;
-static BOOL darkMode = NO;
+static BOOL darkMode = YES;
 static NSMutableDictionary *customStyles;
 static NSArray *backupStylesheetSites = @[];
-static NSArray* neverLoadInto = @[@"www.apple.com", @"mobile.twitter.com"];
-static NSArray *whitelist;
 static NSArray *blacklist;
 static NSString* bgColorHex;
 static NSString* darkerColorHex;
 static NSString* textColorHex;
 static NSDictionary* preferences;
-static BOOL useBlacklist;
 
 static BOOL PreferencesBool(NSString* key, BOOL fallback)
 {
@@ -88,14 +86,11 @@ void loadStylesheetsFromFiles() {
 	}
 }
 
-void loadWhitelist()
-{
-	whitelist = preferences[@"whitelistArray"] ? preferences[@"whitelistArray"] : [NSArray new];
-}
-
 void loadBlacklist()
 {
+	NSArray* neverLoadInto = @[@"www.apple.com", @"mobile.twitter.com"];
 	blacklist = preferences[@"blacklistArray"] ? preferences[@"blacklistArray"] : [NSArray new];
+	blacklist = blacklist ? [blacklist arrayByAddingObjectsFromArray:neverLoadInto] : [[NSArray alloc] initWithArray:neverLoadInto];
 }
 
 void changeColorsInStylesheets()
@@ -127,7 +122,7 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
     CFRelease(keyList);
 	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
-	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
+	darkerColorHex = makeHexColorDarker(bgColorHex, 15);
 	changeColorsInStylesheets();
 }
 
@@ -298,7 +293,7 @@ static NBLBroadcaster *sharedInstance;
 -(void)_didCommitLoadForMainFrame
 {
 	%orig;
-	if (darkMode || (whitelist && [whitelist containsObject:[[self URL] host]]) || (blacklist && ![blacklist containsObject:[[self URL] host]] && useBlacklist))
+	if (darkMode && ![blacklist containsObject:[[self URL] host]])
 	{
 		self.alpha = 0;
 		[self superview].backgroundColor = LCPParseColorString(bgColorHex, @"");
@@ -313,38 +308,11 @@ static NBLBroadcaster *sharedInstance;
 	//back up the original values
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
 
-	if (!useBlacklist)
-	{
-		BOOL whitelisted = NO;
-		if(whitelist && [whitelist containsObject:[[self URL] host]] && !darkMode) {
-			NSLog(@"Site is whitelisted.");
-			[self goDark];
-			whitelisted = YES;
-		}
-
-		if (!whitelisted)
-		{
-			if(darkMode) {
-				[self goDark];
-			} else {
-				[self revertInjection];
-				[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
-			}
-		}
-	}
-	else
-	{
-		BOOL blacklisted = NO;
-		if(blacklist && [blacklist containsObject:[[self URL] host]]) {
-			NSLog(@"Site is blacklisted.");
-			[self revertInjection];
-			blacklisted = YES;
-		}
-
-		if (!blacklisted)
-		{
-			[self goDark];
-		}
+	if (darkMode && ![blacklist containsObject:[[self URL] host]]) {
+		[self goDark];
+	} else {
+		[self revertInjection];
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"Reset" object:nil userInfo:nil];
 	}
 
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"NebulaToggle" object:nil]; //clear up before we add it again
@@ -363,7 +331,7 @@ static NBLBroadcaster *sharedInstance;
 
 %new
 -(void)goDark {
-	if(!self.hasInjected && ![neverLoadInto containsObject:[[self URL] host]]) {
+	if(!self.hasInjected && ![blacklist containsObject:[[self URL] host]]) {
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[self URL] host];
@@ -483,7 +451,7 @@ static NBLBroadcaster *sharedInstance;
 -(void)webView:(id)arg1 didCommitLoadForFrame:(id)arg2
 {
 	%orig;
-	if ((whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) || (blacklist && ![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]] && useBlacklist))
+	if (darkMode && ![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]])
 	{
 		[(WebFrame*)arg2 frameView].hidden = YES;
 	}
@@ -494,21 +462,9 @@ static NBLBroadcaster *sharedInstance;
 	%orig;
 	NSLog(@"Navigation ended.");
 
-	if (!useBlacklist)
-	{
-		if(whitelist && [whitelist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
-			NSLog(@"Site is whitelisted.");
-			[self goDarkForFrame:arg2];
-			[(WebFrame*)arg2 frameView].hidden = NO;
-		}
-	}
-	else
-	{
-		if(![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
-			NSLog(@"Site is not blacklisted, lets go dark baby");
-			[self goDarkForFrame:arg2];
-			[(WebFrame*)arg2 frameView].hidden = NO;
-		}
+	if (darkMode && ![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
+		[self goDarkForFrame:arg2];
+		[(WebFrame*)arg2 frameView].hidden = NO;
 	}
 }
 /*
@@ -1251,7 +1207,18 @@ Boy frame: *goes dark for girl frame*
 	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
 
 	//blacklisted apps
-	NSDictionary *apps = [[NSDictionary alloc] initWithContentsOfFile:APPS_PLIST_PATH];
+	NSMutableDictionary *apps = [[NSMutableDictionary alloc] initWithContentsOfFile:APPS_PLIST_PATH];
+	if (disableInSpringboard)
+	{
+		if (apps)
+		{
+			[apps setObject:@YES forKey:@"com.apple.springboard"];
+		}
+		else
+		{
+			apps = [@{@"com.apple.springboard":@YES} mutableCopy];
+		}
+	}
 	if([[apps allKeys] containsObject:[[NSBundle mainBundle] bundleIdentifier]]) {
 		//the app has at some point been disabled, and we need to check if it currently is
 		if([[apps valueForKey:[[NSBundle mainBundle] bundleIdentifier]] boolValue]) {
@@ -1260,19 +1227,10 @@ Boy frame: *goes dark for girl frame*
 		}
 	}
 
-	NSDictionary *blacklistApps = [[NSDictionary alloc] initWithContentsOfFile:BLACKLIST_APPS_PLIST_PATH];
-	if([[blacklistApps allKeys] containsObject:[[NSBundle mainBundle] bundleIdentifier]]) {
-		//the app has at some point been disabled, and we need to check if it currently is
-		if([[blacklistApps valueForKey:[[NSBundle mainBundle] bundleIdentifier]] boolValue]) {
-			//using blacklist
-			useBlacklist = YES;
-		}
-	}
 	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
 	darkerColorHex = makeHexColorDarker(bgColorHex, 20);
 	loadStylesheetsFromFiles();
-	loadWhitelist();
 	loadBlacklist();
 	changeColorsInStylesheets();
 

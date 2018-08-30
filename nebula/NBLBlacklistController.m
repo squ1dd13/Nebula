@@ -1,6 +1,5 @@
 #include <notify.h>
 #include "NBLBlacklistController.h"
-#include "NBLWhitelistController.h" //this has the necessary interfaces
 
 #define kWidth [[UIApplication sharedApplication] keyWindow].frame.size.width
 #define kHeight [[UIApplication sharedApplication] keyWindow].frame.size.height

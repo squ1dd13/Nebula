@@ -1,5 +1,14 @@
 #import <Preferences/PSListController.h>
 
+@interface UIView (Nebula)
+-(id)_viewControllerForAncestor;
+@end
+
+@interface NSUserDefaults (Nebula) {
+}
+- (id)objectForKey:(id)key inDomain:(id)d;
+- (void)setObject:(id)obj forKey:(id)key inDomain:(id)d;
+@end
 
 @interface NBLBlacklistController : PSListController
 

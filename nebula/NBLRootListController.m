@@ -1,5 +1,4 @@
 #include "NBLRootListController.h"
-#include "NBLWhitelistController.h"
 #include "NBLBlacklistController.h"
 #import <objc/runtime.h>
 

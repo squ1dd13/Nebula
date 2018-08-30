@@ -1,6 +1,6 @@
 /* Universal */
 * {
-	background-color: NEBULA_DARK !important;
+	background: NEBULA_DARK !important;
 	color: NEBULA_TEXT !important;
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
