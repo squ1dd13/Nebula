@@ -160,7 +160,7 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 /* End Packix */
 
 /* Overriding !importants */
-.w3-white, .bg-white, .white {
+.w3-white, .bg-white, .white, .bg-light {
 	background-color: NEBULA_DARK !important;
 }
 
