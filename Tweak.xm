@@ -3,7 +3,6 @@
 #define STYLESHEET_PATH @"/Library/Application Support/Nebula/7374796c65.st"
 #define BACKUP_STYLESHEET_PATH @"/Library/Application Support/Nebula/7374796c66.st"
 #define APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-apps.plist"
-#define BLACKLIST_APPS_PLIST_PATH @"/var/mobile/Library/Preferences/com.octodev.nebula-blacklistapps.plist"
 #define stylesPath @"/Library/Application Support/Nebula/Themes"
 #define safariDarkmode PreferencesBool(@"safariDarkmode", YES)
 #define inSafari ([[((UIView*)self) window] isMemberOfClass:%c(MobileSafariWindow)])
@@ -227,13 +226,13 @@ static NBLBroadcaster *sharedInstance;
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
 
 	self.darkButton = [UIButton buttonWithType:UIButtonTypeCustom];
-	[self.darkButton setFrame:CGRectMake(0, 0, 20, 20)];
+	[self.darkButton setFrame:CGRectMake(0, 0, 24, 24)];
 	[self.darkButton addTarget:self action:@selector(nightMode:) forControlEvents:UIControlEventTouchUpInside];
 	[self.darkButton setSelected:darkMode];
 
 	//cheers pinpal
-	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(20, 20)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected];
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Dark.png"], CGSizeMake(24, 24)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+	[self.darkButton setImage:[resizeImage([UIImage imageWithContentsOfFile:@"/Applications/MobileSafari.app/Light.png"], CGSizeMake(24, 24)) imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected];
 
 	nightModeButton = [[UIBarButtonItem alloc] initWithCustomView:self.darkButton];
 
@@ -562,8 +561,111 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
-#pragma mark App Darkmodes
+//for the respring animation
+%hook UIStatusBar
 
+-(void)layoutSubviews {
+	%orig;
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
+}
+
+%new
+-(void)fadeOut {
+	[UIView animateWithDuration:0.3 animations:^() {
+		((UIView *)self).alpha = 0.0; //smooth
+	}];
+}
+
+%end
+
+%hook _UIStatusBar
+
+-(void)layoutSubviews {
+	%orig;
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
+}
+
+%new
+-(void)fadeOut {
+	[UIView animateWithDuration:0.3 animations:^() {
+		((UIView *)self).alpha = 0.0; //smooth
+	}];
+}
+
+%end
+
+%hook UILabel
+-(void)didMoveToWindow
+{
+	%orig;
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+		self.backgroundColor = [UIColor clearColor];
+	}
+}
+
+-(void)setTextColor:(id)arg1
+{
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
+	{
+		arg1 = LCPParseColorString(textColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook UIToolbar
+-(void)didMoveToWindow
+{
+	%orig;
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	{
+		self.barTintColor = LCPParseColorString(darkerColorHex, @"");
+	}
+}
+
+-(void)setBarTintColor:(id)arg1
+{
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	{
+		arg1 = LCPParseColorString(darkerColorHex, @"");
+	}
+	%orig;
+}
+%end
+
+%hook UITableView
+-(void)layoutSubviews
+{
+	%orig;
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	{
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook UITableViewCell
+-(void)layoutSubviews
+{
+	%orig;
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	{
+		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
+		self.selectedBackgroundView.backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+		if ([self.selectedBackgroundView respondsToSelector:@selector(selectionTintColor)])
+		{
+			((UITableViewCellSelectedBackground*)self.selectedBackgroundView).selectionTintColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
+		}
+	}
+}
+%end
+%end
+
+%group SafariOnly
 /* Safari darkmode */
 %hook _UIBackdropView
 -(void)didMoveToWindow
@@ -625,53 +727,6 @@ Boy frame: *goes dark for girl frame*
 	if (safariDarkmode)
 	{
 		arg1 = LCPParseColorString(bgColorHex, @"");
-	}
-	%orig;
-}
-%end
-
-%hook UITableView
--(void)layoutSubviews
-{
-	%orig;
-	if (safariDarkmode && inSafari)
-	{
-		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
-	}
-}
-%end
-
-%hook UITableViewCell
--(void)layoutSubviews
-{
-	%orig;
-	if (safariDarkmode && inSafari)
-	{
-		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
-		self.selectedBackgroundView.backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
-		if ([self.selectedBackgroundView respondsToSelector:@selector(selectionTintColor)])
-		{
-			((UITableViewCellSelectedBackground*)self.selectedBackgroundView).selectionTintColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
-		}
-	}
-}
-%end
-
-%hook UILabel
--(void)didMoveToWindow
-{
-	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)]))
-	{
-		self.textColor = LCPParseColorString(textColorHex, @"");
-	}
-}
-
--(void)setTextColor:(id)arg1
-{
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)]))
-	{
-		arg1 = LCPParseColorString(textColorHex, @"");
 	}
 	%orig;
 }
@@ -762,6 +817,9 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 /* End safari darkmode */
+%end
+
+%group ChromeOnly
 /* Chrome darkmode */
 %hook ToolbarConfiguration
 -(NSInteger)style
@@ -942,6 +1000,17 @@ Boy frame: *goes dark for girl frame*
 }
 %end
 
+%hook PanelBarView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, 15), @"");
+	}
+	%orig;
+}
+%end
+
 %hook NewTabPageHeaderView
 -(void)didMoveToWindow
 {
@@ -1104,9 +1173,18 @@ Boy frame: *goes dark for girl frame*
 	}
 }
 %end
-/* End chrome darkmode */
-#pragma mark End App Darkmodes
 
+%hook MDCInkView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = [UIColor clearColor];
+	}
+	%orig;
+}
+%end
+/* End chrome darkmode */
 
 #pragma mark Chrome Menu Toggle
 
@@ -1158,40 +1236,6 @@ Boy frame: *goes dark for girl frame*
 
 %end
 #pragma mark End Chrome Menu Toggle
-//for the respring animation
-%hook UIStatusBar
-
--(void)layoutSubviews {
-	%orig;
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
-}
-
-%new
--(void)fadeOut {
-	[UIView animateWithDuration:0.3 animations:^() {
-		((UIView *)self).alpha = 0.0; //smooth
-	}];
-}
-
-%end
-
-%hook _UIStatusBar
-
--(void)layoutSubviews {
-	%orig;
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fadeOut) name:@"UIStatusBarHide" object:nil];
-}
-
-%new
--(void)fadeOut {
-	[UIView animateWithDuration:0.3 animations:^() {
-		((UIView *)self).alpha = 0.0; //smooth
-	}];
-}
-
-%end
 %end
 
 %ctor {
@@ -1202,6 +1246,16 @@ Boy frame: *goes dark for girl frame*
 
 	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
 	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
+
+	//app darkmodes
+	if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.google.chrome.ios"])
+	{
+		%init(ChromeOnly);
+	}
+	else if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.mobilesafari"])
+	{
+		%init(SafariOnly);
+	}
 
 	//blacklisted apps
 	NSMutableDictionary *apps = [[NSMutableDictionary alloc] initWithContentsOfFile:APPS_PLIST_PATH];

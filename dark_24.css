@@ -1,6 +1,7 @@
 /* Universal */
 * {
 	background: NEBULA_DARK !important;
+	background-color: NEBULA_DARK !important;
 	color: NEBULA_TEXT !important;
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.65) !important;
 }
@@ -157,3 +158,17 @@ code, pre, code *, pre *, textarea, textarea *, table, table *, ul, ul *, [type=
 	text-shadow:none!important;
 }
 /* End Packix */
+
+/* Overriding !importants */
+.w3-white, .bg-white, .white {
+	background-color: NEBULA_DARK !important;
+}
+
+.bg-gray, .w3-gray, .gray {
+    background-color: NEBULA_DARKER !important;
+}
+
+.black-text {
+    color: NEBULA_TEXT !important;
+}
+/* End Overriding !importants */
