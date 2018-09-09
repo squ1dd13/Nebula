@@ -600,7 +600,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(TabGridViewController)]))
 	{
 		self.textColor = LCPParseColorString(textColorHex, @"");
 		self.backgroundColor = [UIColor clearColor];
@@ -614,6 +614,17 @@ Boy frame: *goes dark for girl frame*
 		arg1 = LCPParseColorString(textColorHex, @"");
 	}
 	%orig;
+}
+%end
+
+%hook UINavigationBar
+-(void)layoutSubviews
+{
+    %orig;
+	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	{
+		[self setBarStyle:UIBarStyleBlack];
+	}
 }
 %end
 
@@ -729,17 +740,6 @@ Boy frame: *goes dark for girl frame*
 		arg1 = LCPParseColorString(bgColorHex, @"");
 	}
 	%orig;
-}
-%end
-
-%hook UINavigationBar
--(void)layoutSubviews
-{
-    %orig;
-	if (safariDarkmode && inSafari)
-	{
-		[self setBarStyle:UIBarStyleBlack];
-	}
 }
 %end
 
@@ -886,6 +886,15 @@ Boy frame: *goes dark for girl frame*
 	if (([[self superview] isKindOfClass:%c(ToolbarButton)] || [[[self superview] superview] isMemberOfClass:%c(OmniboxTextFieldIOS)] || [[self superview] isKindOfClass:%c(ToolbarCenteredButton)] || [[self superview] isKindOfClass:%c(NewTabPageBarButton)] || [[self _viewControllerForAncestor] isMemberOfClass:%c(ToolsMenuViewController)] || [[self superview] isMemberOfClass:%c(MDCButtonBarButton)]) && chromeDarkmode)
 	{
 		image = changeImageToColor(image, LCPParseColorString(textColorHex, @""));
+	}
+	%orig;
+}
+
+-(void)setTintColor:(id)arg1
+{
+	if (chromeDarkmode && ([[self _viewControllerForAncestor] isMemberOfClass:%c(LocationBarViewController)] || [[self _viewControllerForAncestor] isMemberOfClass:%c(OmnioboxViewController)]))
+	{
+		arg1 = LCPParseColorString(textColorHex, @"");
 	}
 	%orig;
 }
@@ -1122,7 +1131,7 @@ Boy frame: *goes dark for girl frame*
 		CGFloat white;
 		CGFloat alpha;
 		[((UILabel*)self).textColor getWhite:&white alpha:&alpha];
-		if (white == 0.2)
+		if (white <= 0.2)
 		{
 			((UILabel*)self).textColor = LCPParseColorString(textColorHex, @"");
 		}
@@ -1182,6 +1191,28 @@ Boy frame: *goes dark for girl frame*
 		arg1 = [UIColor clearColor];
 	}
 	%orig;
+}
+%end
+
+%hook GridCell
+-(void)didMoveToWindow
+{
+	%orig;
+	if (chromeDarkmode)
+	{
+		[self topBar].backgroundColor = LCPParseColorString(bgColorHex, @"");
+	}
+}
+%end
+
+%hook _UIVisualEffectSubview
+-(void)layoutSubviews
+{
+	%orig;
+	if (chromeDarkmode && [[[((UIView*)self) superview] superview] isKindOfClass:[UITableViewHeaderFooterView class]])
+	{
+		((UIView*)self).backgroundColor = LCPParseColorString(darkerColorHex, @"");
+	}
 }
 %end
 /* End chrome darkmode */

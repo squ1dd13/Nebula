@@ -184,3 +184,7 @@ UIImage* changeImageToColor(UIImage* image, UIColor* color) {
 @interface UITableViewCellSelectedBackground : UIView
 @property (nonatomic,retain) UIColor * selectionTintColor;
 @end
+
+@interface GridCell : UIView
+-(UIView*)topBar;
+@end
