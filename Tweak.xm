@@ -1249,7 +1249,6 @@ Boy frame: *goes dark for girl frame*
 
 #pragma mark Chrome Menu Toggle
 
-//we might need to only run this code in the Chrome app just in case there's another app that uses a class with the same name
 @class ToolsMenuViewCell;
 @interface ToolsMenuViewItem : NSObject
 @property (nonatomic, copy, readwrite) NSString *accessibilityIdentifier;
