@@ -205,7 +205,7 @@ static NBLBroadcaster *sharedInstance;
 
 -(void)setBarStyle:(NSInteger)arg1
 {
-	if (safariDarkmode && inSafari)
+	if (inSafari && safariDarkmode)
 	{
 		arg1 = UIBarStyleBlack;
 	}
@@ -215,7 +215,7 @@ static NBLBroadcaster *sharedInstance;
 -(void)didMoveToWindow
 {
 	%orig;
-	if (safariDarkmode && inSafari)
+	if (inSafari && safariDarkmode)
 	{
 		[self setBarStyle:UIBarStyleBlack];
 	}
@@ -600,7 +600,17 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(TabGridViewController)]))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(TabGridViewController)]))
+	{
+		self.textColor = LCPParseColorString(textColorHex, @"");
+		self.backgroundColor = [UIColor clearColor];
+	}
+}
+
+-(void)layoutSubviews
+{
+	%orig;
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(TabGridViewController)]))
 	{
 		self.textColor = LCPParseColorString(textColorHex, @"");
 		self.backgroundColor = [UIColor clearColor];
@@ -609,9 +619,18 @@ Boy frame: *goes dark for girl frame*
 
 -(void)setTextColor:(id)arg1
 {
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
 	{
 		arg1 = LCPParseColorString(textColorHex, @"");
+	}
+	%orig;
+}
+
+-(void)setBackgroundColor:(id)arg1
+{
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode && ![self isMemberOfClass:%c(TitleLabel)] && ![[self _viewControllerForAncestor] isMemberOfClass:%c(GFBFeedbackViewController)]))
+	{
+		arg1 = [UIColor clearColor];
 	}
 	%orig;
 }
@@ -621,7 +640,7 @@ Boy frame: *goes dark for girl frame*
 -(void)layoutSubviews
 {
     %orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode))
 	{
 		[self setBarStyle:UIBarStyleBlack];
 	}
@@ -632,7 +651,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode))
 	{
 		self.barTintColor = LCPParseColorString(darkerColorHex, @"");
 	}
@@ -640,7 +659,7 @@ Boy frame: *goes dark for girl frame*
 
 -(void)setBarTintColor:(id)arg1
 {
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode))
 	{
 		arg1 = LCPParseColorString(darkerColorHex, @"");
 	}
@@ -652,7 +671,7 @@ Boy frame: *goes dark for girl frame*
 -(void)layoutSubviews
 {
 	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode))
 	{
 		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
 	}
@@ -663,7 +682,7 @@ Boy frame: *goes dark for girl frame*
 -(void)layoutSubviews
 {
 	%orig;
-	if ((safariDarkmode && inSafari) || (chromeDarkmode && inChrome))
+	if ((inSafari && safariDarkmode) || (inChrome && chromeDarkmode))
 	{
 		self.backgroundColor = LCPParseColorString(bgColorHex, @"");
 		self.selectedBackgroundView.backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
@@ -682,7 +701,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if (inSafari && [self style] != 2030 && safariDarkmode)
+	if ([self style] != 2030 && safariDarkmode)
 	{
 		[self transitionToPrivateStyle:1];
 	}
@@ -691,7 +710,7 @@ Boy frame: *goes dark for girl frame*
 -(void)setStyle:(NSInteger)arg1
 {
 	%orig;
-	if (inSafari && [self style] != 2030 && safariDarkmode)
+	if ([self style] != 2030 && safariDarkmode)
 	{
 		[self transitionToPrivateStyle:1];
 	}
@@ -747,7 +766,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
     %orig;
-	if (safariDarkmode && inSafari)
+	if (safariDarkmode)
 	{
 		[self setBarStyle:UIBarStyleBlack];
 		((UITextField*)[self valueForKey:@"searchField"]).textColor = LCPParseColorString(textColorHex, @"");
@@ -756,7 +775,7 @@ Boy frame: *goes dark for girl frame*
 
 -(void)setBarStyle:(NSInteger)arg1
 {
-	if (safariDarkmode && inSafari)
+	if (safariDarkmode)
 	{
 		arg1 = UIBarStyleBlack;
 	}
@@ -768,7 +787,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if (safariDarkmode && inSafari)
+	if (safariDarkmode)
 	{
 		((UIView*)self).backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
 	}
@@ -777,7 +796,7 @@ Boy frame: *goes dark for girl frame*
 -(void)layoutSubviews
 {
 	%orig;
-	if (safariDarkmode && inSafari)
+	if (safariDarkmode)
 	{
 		((UIView*)self).backgroundColor = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
 	}
@@ -786,7 +805,7 @@ Boy frame: *goes dark for girl frame*
 
 -(void)setBackgroundColor:(id)arg1
 {
-	if (safariDarkmode && inSafari)
+	if (safariDarkmode)
 	{
 		arg1 = LCPParseColorString(makeHexColorDarker(bgColorHex, -25), @"");
 	}
@@ -1154,7 +1173,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if (inChrome && chromeDarkmode)
+	if (chromeDarkmode)
 	{
 		self.textColor = LCPParseColorString(textColorHex, @"");
 	}
@@ -1176,7 +1195,7 @@ Boy frame: *goes dark for girl frame*
 -(void)didMoveToWindow
 {
 	%orig;
-	if (chromeDarkmode && inChrome)
+	if (inChrome && chromeDarkmode)
 	{
 		self.backgroundColor = [UIColor clearColor];
 	}
@@ -1213,6 +1232,17 @@ Boy frame: *goes dark for girl frame*
 	{
 		((UIView*)self).backgroundColor = LCPParseColorString(darkerColorHex, @"");
 	}
+}
+%end
+
+%hook _UITableViewHeaderFooterContentView
+-(void)setBackgroundColor:(id)arg1
+{
+	if (chromeDarkmode)
+	{
+		arg1 = LCPParseColorString(bgColorHex, @"");
+	}
+	%orig;
 }
 %end
 /* End chrome darkmode */
