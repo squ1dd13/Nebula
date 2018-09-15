@@ -1299,13 +1299,13 @@ Boy frame: *goes dark for girl frame*
 %end
 
 %ctor {
+	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
 	if (!enabled) { return; }
 	//Load the stylesheets from files as soon as the tweak is injected and store them in static variables.
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ColorChangedCallback, CFSTR("com.octodev.nebula-colorchanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)PreferencesChangedCallback, CFSTR("com.octodev.nebula-prefschanged"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 	NSDictionary* colors = [[NSDictionary alloc] initWithContentsOfFile:COLORS_PLIST_PATH];
-	preferences = [[NSDictionary alloc] initWithContentsOfFile:SETTINGS_PLIST_PATH];
 
 	//app darkmodes
 	if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.google.chrome.ios"])
