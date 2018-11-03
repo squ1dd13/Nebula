@@ -199,6 +199,13 @@
 	behind all of de scenes
 	into de plist de changes will pop
 	*/
+	
+	/*
+	It is worth noting that the changes are not written during the respring. They are written before.
+	(The respring allows the tweak to reload all the values.)
+	I was using poetic license.
+	*/
+	
 	UIBarButtonItem *respringTing = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:[SQRespringControl class] action:@selector(respring)];
 	respringTing.tintColor = [UIColor colorWithRed:50/255.0 green:55/255.0 blue:64/255.0 alpha:1.0];
 	[self.navigationItem setRightBarButtonItem:respringTing];
