@@ -41,13 +41,11 @@ void loadStylesheetsFromFiles() {
 	stylesheetFromHex = [NSString stringWithContentsOfFile:STYLESHEET_PATH encoding:NSUTF8StringEncoding error:&err];
 	stylesheetFromHex = fromDoubleHex(stylesheetFromHex, @"You can go away now.\n");
 
-	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
 	err = nil; //if there is an error on this one, the next one will log an error without there being one unless we set this to nil
 
 	backupStylesheet = [NSString stringWithContentsOfFile:BACKUP_STYLESHEET_PATH encoding:NSUTF8StringEncoding error:&err];
 	backupStylesheet = fromDoubleHex(backupStylesheet, @"You can go away now.\n");
 
-	if(err) NSLog(@"ERROR: %@", err.localizedFailureReason);
 	err = nil;
 
 	//load custom stylesheets:
@@ -55,9 +53,7 @@ void loadStylesheetsFromFiles() {
 
 	NSArray *possibleStyles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stylesPath error:&err];
 	NSArray *validStyles;
-	if(err) {
-		NSLog(@"Failed to fetch styles folder contents");
-	} else {
+	if(!err) {
 		//we only want css files. .min.css will also load
 		 validStyles = [possibleStyles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF ENDSWITH %@", @"css"]];
 		//files should have a /* <host of site> */ comment at the top
@@ -70,7 +66,6 @@ void loadStylesheetsFromFiles() {
 				continue;
 			}
 			NSString *host = stringBetween(hostLine, @"/*", @"*/");
-			NSLog(@"%@", host);
 			if([host containsString:@","]) {
 				NSArray *hosts = [host componentsSeparatedByString:@","];
 				for(NSString *h in hosts) {
@@ -79,8 +74,6 @@ void loadStylesheetsFromFiles() {
 			}
 			host = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			[customStyles setValue:file forKey:host]; //so we can load this stylesheet based on the host later
-			NSLog(@"%@", file);
-			NSLog(@"styles %@", customStyles);
 		}
 	}
 }
@@ -111,13 +104,9 @@ static void ColorChangedCallback(CFNotificationCenterRef center, void *observer,
 	CFStringRef appID = CFSTR("com.octodev.nebulacolors");
     CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
     if (!keyList) {
-        NSLog(@"There's been an error getting the key list!");
         return;
     }
     colors = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-    if (!colors) {
-        NSLog(@"There's been an error getting the preferences dictionary!");
-    }
     CFRelease(keyList);
 	bgColorHex = colors[@"backgroundColor"] ? [colors[@"backgroundColor"] substringWithRange:NSMakeRange(0, 7)] : @"#262626";
 	textColorHex = colors[@"textColor"] ? [colors[@"textColor"] substringWithRange:NSMakeRange(0, 7)] : @"#ededed";
@@ -130,13 +119,9 @@ static void PreferencesChangedCallback(CFNotificationCenterRef center, void *obs
 	CFStringRef appID = CFSTR("com.octodev.nebula");
 	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	if (!keyList) {
-		NSLog(@"There's been an error getting the key list!");
 		return;
 	}
 	preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!preferences) {
-		NSLog(@"There's been an error getting the preferences dictionary!");
-	}
 	CFRelease(keyList);
 }
 
@@ -302,7 +287,6 @@ static NBLBroadcaster *sharedInstance;
 -(void)_didFinishLoadForMainFrame {
 	%orig;
 	self.hasInjected = NO;
-	NSLog(@"Navigation ended.");
 
 	//back up the original values
 	self.originalHead = [self getJavaScriptOutput:@"document.getElementsByTagName(\"head\")[0].innerHTML"];
@@ -334,7 +318,6 @@ static NBLBroadcaster *sharedInstance;
 		NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 		NSString *host = [[self URL] host];
-		NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 		if(host && [customStyles valueForKey:host]) {
 			NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
 			custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
@@ -364,7 +347,6 @@ static NBLBroadcaster *sharedInstance;
 	if (self.hasInjected)
 	{
 		self.hasInjected = NO;
-		NSLog(@"Reverting changes");
 		[self runJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName(\"head\")[0].innerHTML = `%@`;", self.originalHead] completion:nil];
 	}
 }
@@ -410,7 +392,6 @@ static NBLBroadcaster *sharedInstance;
 	if(![[self valueForKeyPath:@"wkPreferences.javaScriptEnabled"] boolValue]) {
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
-			NSLog(@"Javascript is disabled.");
 			//warn the user
 			void (^change)(void) = ^{
 				NSString *plistPath = [[[NSUserDefaults standardUserDefaults] stringForKey:@"WebDatabaseDirectory"] stringByReplacingOccurrencesOfString:@"/WebKit/WebsiteData/WebSQL" withString:@"/Preferences/com.apple.mobilesafari.plist"];
@@ -456,7 +437,6 @@ static NBLBroadcaster *sharedInstance;
 -(void)webView:(id)arg1 didFinishLoadForFrame:(id)arg2
 {
 	%orig;
-	NSLog(@"Navigation ended.");
 
 	if (darkMode && ![blacklist containsObject:[[(WebFrame*)arg2 webui_URL] host]]) {
 		[self goDarkForFrame:arg2];
@@ -475,7 +455,6 @@ Boy frame: *goes dark for girl frame*
 	NSString *stylesheet = [NSString stringWithFormat:@"%@", stylesheetFromHex];
 
 	NSString *host = [[webFrame webui_URL] host];
-	NSLog(@"%@ css: %@", host, [customStyles valueForKey:host]);
 	if(host && [customStyles valueForKey:host]) {
 		NSString *custom = [NSString stringWithContentsOfFile:[[stylesPath stringByAppendingString:@"/"] stringByAppendingString:[customStyles valueForKey:host]] encoding:NSUTF8StringEncoding error:nil];
 		custom = [custom stringByReplacingOccurrencesOfString:@"NEBULA_DARKER" withString:darkerColorHex];
@@ -503,12 +482,10 @@ Boy frame: *goes dark for girl frame*
 
 -(void)viewDidLayoutSubviews {
 	%orig;
-	NSLog(@"Hello world!");
 	[(NSObject *)self performSelector:@selector(setToolbarItems:) withObject:@[]];
 }
 
 -(void)setToolbarItems:(NSArray *)items {
-	NSLog(@"Setting.");
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"Reset" object:nil]; //clear up before we add it again
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resetButton) name:@"Reset" object:nil];
 

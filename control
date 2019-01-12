@@ -1,7 +1,7 @@
 Package: com.octodev.nebula
 Name: Nebula
 Depends: mobilesubstrate, com.rpetrich.rocketbootstrap (>= 1.0.3), applist, preferenceloader, ws.hbang.common, org.thebigboss.libcolorpicker
-Version: 1.0.0
+Version: 1.0.0-3
 Architecture: iphoneos-arm
 Description: Universal darkmode for webpages.
 Maintainer: Squ1dd13, Muirey03
